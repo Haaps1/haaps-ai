@@ -3,7 +3,7 @@
 An animated, responsive, lead-generation website for Haaps. It's plain HTML, CSS and JS with no build step.
 
 ## Pages
-- `index.html`: Home. Ten sections, each a different concept (listed below).
+- `index.html`: Home. Five sections, listed below.
 - `about.html`: About. Story, values, journey timeline and team.
 - `services.html`: Services. All 8 services as sticky stacking cards with a jump nav, plus packages.
 - `contact.html`: Contact. Lead form, contact cards and a map.
@@ -13,18 +13,16 @@ The design is dark and minimal: thin Poppins type, a soft pink light falling fro
 
 ## Home page sections
 1. **Hero**: the headline is split around a dense, top-lit particle object. As you scroll, the two halves slide apart and the object grows.
-2. **Plexus**: the particles become a glowing network of connected points, with channel labels such as Instagram, Google Ads and SEO.
-3. **Light beam**: beams of light shine on a glass frame where the particles form the Haaps logo, inside scanning corner brackets.
-4. **Field**: "Tailored digital marketing solutions" comes into focus out of a field of particle dust.
-5. **Tunnel**: you fly through a particle tunnel past eight glass service panels.
-6. **About**: a grid of cards with soft pink glows.
-7. **Contact**: a particle donut morphs into two blobs and back.
+2. **Orbit**: the particles form a dotted globe while eight channel pills (Instagram, Google Ads, Reels, WhatsApp AI, SEO, Website, AI Video and Calling Agent) circle it in 3D.
+3. **Tunnel**: you fly through a particle tunnel past eight glass service panels.
+4. **About**: a grid of cards with soft pink glows.
+5. **Contact**: a particle donut morphs into two blobs and back.
 
 Inner pages use the same particle background, typography and navigation.
 
 ## Motion stack
-- **Three.js**: a particle engine with about 22,000 points that morphs between shapes (blob, network, logo, field, tunnel, donut and twin blobs) as each section scrolls into view.
-- **GSAP + ScrollTrigger**: sticky scroll scenes, the hero split, word reveals, the frame zoom and the tunnel fly-through.
+- **Three.js**: a particle engine with about 22,000 points that morphs between shapes (blob, globe, tunnel, donut and twin blobs, plus the logo on inner pages) as each section scrolls into view.
+- **GSAP + ScrollTrigger**: sticky scroll scenes, the hero split, the channel orbit, word reveals and the tunnel fly-through.
 - **Lenis**: smooth scrolling.
 - Respects `prefers-reduced-motion`.
 

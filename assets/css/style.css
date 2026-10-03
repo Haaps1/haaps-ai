@@ -944,3 +944,29 @@ main { z-index: 2; }
 .marquee__item { font-weight: 200; letter-spacing: -.03em; text-transform: none; }
 .marquee--tilt .marquee__item { color: rgba(255, 255, 255, .85); }
 .marquee__item .star { fill: var(--pink); }
+
+/* ---------- ORBIT: channels circling the globe ---------- */
+.h-orbit { height: 200vh; padding: 0; }
+.h-orbit .stage { display: flex; align-items: center; }
+.orbit-copy { position: relative; z-index: 4; margin-left: var(--gutter); max-width: 470px; }
+.orbit-copy h2 { font-size: clamp(36px, 4.6vw, 72px); line-height: 1.02; margin-top: 20px; }
+.orbit-copy p { color: var(--muted); margin-top: 22px; }
+.orbit-stats { display: flex; gap: 34px; margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--line); }
+.orbit-stats b { display: block; font-family: var(--font-display); font-weight: 200; font-size: 40px; line-height: 1; letter-spacing: -.04em; }
+.orbit-stats span { font-size: 13px; color: rgba(255, 255, 255, .55); }
+.orbit-sys { position: absolute; left: 65%; top: 50%; width: min(56vw, 760px); height: min(17vw, 230px); transform: translate(-50%, -50%) rotate(-12deg); z-index: 2; }
+.orbit-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(255, 120, 190, .35); box-shadow: 0 0 30px rgba(242, 0, 109, .15); }
+.orbit-ring--2 { inset: -14% -8%; border-color: rgba(255, 255, 255, .07); box-shadow: none; }
+.o-item { position: absolute; left: 50%; top: 50%; display: inline-flex; align-items: center; gap: 10px; padding: 9px 16px 9px 9px; border-radius: 99px; white-space: nowrap; font-family: var(--font-display); font-size: 14px; color: #fff;
+  background: rgba(30, 8, 30, .6); border: 1px solid rgba(255, 255, 255, .14); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 30px -10px rgba(242, 0, 109, .5); will-change: transform, opacity; }
+.o-item i { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 13px; background: var(--grad); box-shadow: 0 0 14px var(--glow); }
+.o-item { rotate: 12deg; }
+@media (max-width: 768px) {
+  .h-orbit .stage { align-items: flex-end; padding-bottom: 110px; }
+  .orbit-copy { margin-right: var(--gutter); }
+  .orbit-stats { gap: 20px; }
+  .orbit-stats b { font-size: 30px; }
+  .orbit-sys { left: 50%; top: 31%; width: 86vw; height: 26vw; }
+  .o-item { font-size: 12px; padding: 6px 12px 6px 6px; }
+  .o-item i { width: 22px; height: 22px; font-size: 11px; }
+}

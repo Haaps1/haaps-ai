@@ -265,36 +265,33 @@ function home() {
     ScrollTrigger.create({ start: 80, onEnter: () => document.querySelector(".scroll-cue")?.classList.add("is-hidden"), onLeaveBack: () => document.querySelector(".scroll-cue")?.classList.remove("is-hidden") });
   }
 
-  // 2. plexus
-  const plex = document.querySelector(".h-plex");
-  if (plex) {
-    const tl = gsap.timeline({ scrollTrigger: { trigger: plex, start: "top top", end: "bottom bottom", scrub: 0.8 } });
-    tl.from(".h-plex .label", { opacity: 0, y: 20, duration: 0.15 })
-      .from(".h-plex .line > span", { yPercent: 110, stagger: 0.08, duration: 0.25 }, 0.05)
-      .from(".plex-p", { opacity: 0, y: 20, duration: 0.15 }, 0.25)
-      .from(".node", { opacity: 0, scale: 0.6, stagger: 0.04, duration: 0.15 }, 0.1)
-      .to(".node", { y: (i) => (i % 2 ? -80 : 80), duration: 0.6, ease: "none" }, 0.3)
-      .to(".h-plex__text", { opacity: 0, y: -40, duration: 0.15 }, 0.85);
-  }
-
-  // 3. beam + frame
-  const beam = document.querySelector(".h-beam");
-  if (beam) {
-    gsap.timeline({ scrollTrigger: { trigger: beam, start: "top top", end: "bottom bottom", scrub: 0.8, onUpdate: (s) => SCENE && SCENE.setZoom(0.75 + s.progress * 0.7) } })
-      .fromTo(".frame", { scale: 0.55, opacity: 0.4 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power2.out" }, 0)
-      .from(".beam", { opacity: 0, scaleY: 0.4, duration: 0.35 }, 0)
-      .fromTo(".frame__corners", { scale: 1.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4 }, 0.15)
-      .from(".h-beam__copy .line > span", { yPercent: 110, duration: 0.2 }, 0.2)
-      .from(".h-beam__copy .pill, .h-beam__side", { opacity: 0, y: 20, duration: 0.2 }, 0.3)
-      .to(".frame", { scale: 1.15, opacity: 0, duration: 0.25, ease: "power2.in" }, 0.75)
-      .to(".beam, .h-beam__copy, .h-beam__side", { opacity: 0, duration: 0.2 }, 0.8);
-  }
-
-  // 4. field statement: words come out of the blur
-  const ft = document.querySelector(".field-text");
-  if (ft) {
-    const words = wrapWords(ft);
-    gsap.to(words, { opacity: 1, filter: "blur(0px)", stagger: 0.12, ease: "none", scrollTrigger: { trigger: ".h-field", start: "top 70%", end: "center 45%", scrub: true } });
+  // 2. orbit: channels circle the particle globe
+  const orb = document.querySelector(".h-orbit");
+  if (orb) {
+    const items = [...orb.querySelectorAll(".o-item")];
+    const sys = orb.querySelector(".orbit-sys");
+    let spin = 0, scrollSpin = 0;
+    const draw = () => {
+      const w = sys.offsetWidth, h = sys.offsetHeight;
+      const rx = w * 0.5, ry = h * 0.5;
+      items.forEach((el, i) => {
+        const ang = (i / items.length) * Math.PI * 2 + spin + scrollSpin;
+        const depth = Math.sin(ang); // -1 back … 1 front
+        const x = Math.cos(ang) * rx, y = depth * ry;
+        const sc = 0.72 + (depth + 1) * 0.2;
+        el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${sc})`;
+        el.style.opacity = 0.3 + (depth + 1) * 0.35;
+        el.style.zIndex = depth > 0 ? 3 : 1;
+        el.style.filter = depth < -0.3 ? "blur(1.5px)" : "none";
+      });
+    };
+    gsap.ticker.add(() => { spin += 0.0025; draw(); });
+    ScrollTrigger.create({ trigger: orb, start: "top bottom", end: "bottom top", onUpdate: (s) => (scrollSpin = s.progress * Math.PI * 1.5) });
+    gsap.timeline({ scrollTrigger: { trigger: orb, start: "top 70%", end: "top 10%", scrub: 0.8 } })
+      .from(".orbit-copy .label", { opacity: 0, y: 20 })
+      .from(".orbit-copy .line > span", { yPercent: 110, stagger: 0.1 }, 0.1)
+      .from(".orbit-copy p, .orbit-stats > div", { opacity: 0, y: 24, stagger: 0.08 }, 0.3)
+      .from(".orbit-sys", { scale: 0.6, opacity: 0, ease: "power2.out" }, 0);
   }
 
   // 5. tunnel fly-through

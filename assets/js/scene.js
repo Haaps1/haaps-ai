@@ -96,6 +96,22 @@
     return a;
   };
 
+  // clean dotted globe: latitude + longitude lines with a light dust shell
+  shapes.globe = () => {
+    const a = new Float32Array(N * 3);
+    const R = 2.3;
+    for (let i = 0; i < N; i++) {
+      const k = Math.random();
+      let th, ph;
+      if (k < 0.42) { th = (Math.floor(Math.random() * 13) + 1) / 14 * Math.PI; ph = Math.random() * Math.PI * 2; }
+      else if (k < 0.84) { ph = Math.floor(Math.random() * 18) / 18 * Math.PI * 2; th = Math.random() * Math.PI; }
+      else { th = Math.acos(Math.random() * 2 - 1); ph = Math.random() * Math.PI * 2; }
+      const r = R * (k < 0.84 ? 1 : 1 + Math.random() * 0.05);
+      a.set([Math.sin(th) * Math.cos(ph) * r, Math.cos(th) * r, Math.sin(th) * Math.sin(ph) * r], i * 3);
+    }
+    return a;
+  };
+
   shapes.field = () => {
     const a = new Float32Array(N * 3);
     for (let i = 0; i < N; i++) a.set([rand(-11, 11), rand(-6, 6), rand(-9, 3)], i * 3);
@@ -246,7 +262,7 @@
     return out;
   }
 
-  const SPIN = { blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
+  const SPIN = { globe: [0.12, 0], blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
   const STREAM = { blob: 1, twins: 0.4, torus: 0.3 };
 
   function setShape(name, o = {}) {
