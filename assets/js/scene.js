@@ -1,10 +1,10 @@
 /* =========================================================
-   HAAPS — particle morph engine (Three.js)
-   ~15k particles that assemble into the Haaps logo, then burst
-   and re-form into new 3D shapes as each section scrolls in.
-   Particles flee from the mouse. Colours follow the section theme.
-   Public API: window.HAAPS_SCENE.setShape(name, {x, scale}),
-               .setTheme(name), .pulse()
+   HAAPS — particle scene (Three.js)
+   A dense, top-lit point cloud that morphs between shapes as
+   sections scroll in: organic blob, plexus network, framed logo,
+   dust field, tunnel, torus / twin blobs.
+   API: window.HAAPS_SCENE.setShape(name, {x, y, scale}),
+        .setZoom(z), .setAlpha(a), .pulse()
    ========================================================= */
 (function () {
   const canvas = document.getElementById("webgl");
@@ -12,7 +12,7 @@
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
-  const N = isMobile ? 7000 : 15000;
+  const N = isMobile ? 9000 : 22000;
 
   let renderer;
   try {
@@ -29,92 +29,96 @@
   const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
   const CAM_Z = 10;
   camera.position.z = CAM_Z;
-
   const visible = () => {
     const h = 2 * Math.tan((camera.fov * Math.PI) / 360) * CAM_Z;
     return { w: h * camera.aspect, h };
   };
 
-  /* ---------------- shape generators (all ~unit size 6) ---------------- */
+  /* ---------------- helpers ---------------- */
   const rand = (a, b) => a + Math.random() * (b - a);
+  const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+  // cheap smooth 3D "noise" from layered sines (CPU, for shape building)
+  const sn = (x, y, z) =>
+    Math.sin(x * 1.7 + Math.sin(y * 2.3)) * 0.5 +
+    Math.sin(y * 1.3 + Math.sin(z * 1.9)) * 0.35 +
+    Math.sin(z * 2.1 + Math.sin(x * 1.1)) * 0.3 +
+    Math.sin((x + y + z) * 3.1) * 0.12;
+  const randDir = () => {
+    const u = Math.random() * 2 - 1, t = Math.random() * Math.PI * 2, r = Math.sqrt(1 - u * u);
+    return [r * Math.cos(t), u, r * Math.sin(t)];
+  };
+
+  /* ---------------- shapes ---------------- */
   const shapes = {};
 
-  shapes.sphere = () => {
+  // organic rock / coral-like blob, denser on the surface
+  const blobAt = (cx, cy, cz, R, seed) => {
+    const [dx, dy, dz] = randDir();
+    const n = sn(dx * 1.6 + seed, dy * 1.6, dz * 1.6 - seed);
+    const shell = Math.random() < 0.82 ? 1 - Math.random() * 0.06 : Math.pow(Math.random(), 0.5);
+    const r = R * (1 + n * 0.32) * shell;
+    return [cx + dx * r * 1.15, cy + dy * r * 0.92, cz + dz * r];
+  };
+  shapes.blob = () => {
     const a = new Float32Array(N * 3);
-    const golden = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < N; i++) a.set(blobAt(0, 0, 0, 2.3, 0.7), i * 3);
+    return a;
+  };
+
+  shapes.twins = () => {
+    const a = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) a.set(i % 2 ? blobAt(-1.15, 0.25, 0, 1.15, 2.1) : blobAt(1.15, -0.25, 0, 1.15, 4.3), i * 3);
+    return a;
+  };
+
+  shapes.torus = () => {
+    const a = new Float32Array(N * 3);
     for (let i = 0; i < N; i++) {
-      const y = 1 - (i / (N - 1)) * 2;
-      const r = Math.sqrt(1 - y * y);
-      const t = golden * i;
-      const R = 2.6 * (i % 7 === 0 ? rand(0.3, 1) : 1);
-      a.set([Math.cos(t) * r * R, y * R, Math.sin(t) * r * R], i * 3);
+      const u = Math.random() * Math.PI * 2, v = Math.random() * Math.PI * 2;
+      const r = 0.95 * (Math.random() < 0.85 ? 1 : Math.random()) * (1 + sn(Math.cos(u) * 2, Math.sin(u) * 2, v) * 0.18);
+      a.set([(2.1 + r * Math.cos(v)) * Math.cos(u), (2.1 + r * Math.cos(v)) * Math.sin(u), r * Math.sin(v)], i * 3);
     }
     return a;
   };
 
-  shapes.ring = () => {
+  // plexus: points scattered in a wide volume (lines are added separately)
+  const PLEX_M = isMobile ? 160 : 320;
+  const plexNodes = new Float32Array(PLEX_M * 3);
+  for (let j = 0; j < PLEX_M; j++) plexNodes.set([rand(-8, 8), rand(-4.5, 4.5), rand(-4, 2)], j * 3);
+  shapes.plexus = () => {
     const a = new Float32Array(N * 3);
-    for (let i = 0; i < N; i++) {
-      const arm = i % 3;
-      const r = Math.pow(Math.random(), 0.7) * 3.6 + 0.4;
-      const ang = r * 1.3 + (arm / 3) * Math.PI * 2 + rand(-0.35, 0.35);
-      const x = Math.cos(ang) * r;
-      const z = Math.sin(ang) * r;
-      const y = rand(-0.15, 0.15) * (4 - r) * 0.5;
-      // tilt the disk
-      a.set([x, y * Math.cos(0.5) - z * Math.sin(0.5), y * Math.sin(0.5) + z * Math.cos(0.5)], i * 3);
+    a.set(plexNodes, 0);
+    // remaining particles cluster softly around the nodes = glowing nebula dust
+    for (let i = PLEX_M; i < N; i++) {
+      const k = Math.floor(Math.random() * PLEX_M) * 3;
+      a.set([plexNodes[k] + gauss() * 0.45, plexNodes[k + 1] + gauss() * 0.45, plexNodes[k + 2] + gauss() * 0.45], i * 3);
     }
     return a;
   };
 
-  shapes.wave = () => {
+  shapes.field = () => {
     const a = new Float32Array(N * 3);
-    const cols = Math.round(Math.sqrt(N * 2.2));
+    for (let i = 0; i < N; i++) a.set([rand(-11, 11), rand(-6, 6), rand(-9, 3)], i * 3);
+    return a;
+  };
+
+  shapes.tunnel = () => {
+    const a = new Float32Array(N * 3);
     for (let i = 0; i < N; i++) {
-      const cx = i % cols;
-      const cz = Math.floor(i / cols);
-      const rows = Math.ceil(N / cols);
-      const x = (cx / cols - 0.5) * 12;
-      const z = (cz / rows - 0.5) * 6;
-      const y = Math.sin(x * 0.8) * 0.5 + Math.cos(z * 1.2 + x * 0.3) * 0.4;
-      // tilt towards camera
-      a.set([x, y * Math.cos(-1) - z * Math.sin(-1) - 0.6, y * Math.sin(-1) + z * Math.cos(-1)], i * 3);
+      const t = Math.random() * Math.PI * 2;
+      const r = 4.2 + gauss() * 0.9;
+      a.set([Math.cos(t) * r, Math.sin(t) * r * 0.75, rand(-40, 6)], i * 3);
     }
     return a;
   };
 
-  shapes.helix = () => {
-    const a = new Float32Array(N * 3);
-    for (let i = 0; i < N; i++) {
-      const t = (i / N) * Math.PI * 8;
-      const strand = i % 2 ? Math.PI : 0;
-      const isRung = i % 9 === 0;
-      const r = isRung ? rand(-1, 1) : 1.1 + rand(-0.12, 0.12);
-      const x = (i / N - 0.5) * 11;
-      a.set([x, Math.cos(t + strand) * r, Math.sin(t + strand) * r], i * 3);
-    }
-    return a;
-  };
-
-  shapes.cube = () => {
-    const a = new Float32Array(N * 3);
-    const s = 1.9;
-    for (let i = 0; i < N; i++) {
-      const face = i % 6;
-      const u = rand(-s, s), v = rand(-s, s);
-      const p = [[s, u, v], [-s, u, v], [u, s, v], [u, -s, v], [u, v, s], [u, v, -s]][face];
-      a.set(p, i * 3);
-    }
-    return a;
-  };
-
-  // logo: sample the real logo image's opaque pixels
-  shapes.logo = () => shapes._logo || shapes.sphere();
+  // logo sampled from the real image
+  shapes.logo = () => shapes._logo || shapes.blob();
   const loadLogo = () =>
     new Promise((res) => {
       const img = new Image();
       img.onload = () => {
-        const W = 320, H = Math.round((img.height / img.width) * W);
+        const W = 300, H = Math.round((img.height / img.width) * W);
         const c = document.createElement("canvas");
         c.width = W; c.height = H;
         const g = c.getContext("2d");
@@ -122,45 +126,43 @@
         const d = g.getImageData(0, 0, W, H).data;
         const pts = [];
         for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 140) pts.push(x, y);
-        if (!pts.length) return res(null);
+        if (!pts.length) return res();
         const a = new Float32Array(N * 3);
-        const scale = 7 / W;
+        const s = 5.4 / W;
         for (let i = 0; i < N; i++) {
           const k = Math.floor(Math.random() * (pts.length / 2)) * 2;
-          a.set([(pts[k] + Math.random() - W / 2) * scale, -(pts[k + 1] + Math.random() - H / 2) * scale, rand(-0.12, 0.12)], i * 3);
+          a.set([(pts[k] + Math.random() - W / 2) * s, -(pts[k + 1] + Math.random() - H / 2) * s, gauss() * 0.15], i * 3);
         }
         shapes._logo = a;
-        res(a);
+        res();
       };
-      img.onerror = () => res(null);
+      img.onerror = () => res();
       img.src = "assets/img/logo.png";
     });
 
-  /* ---------------- geometry + material ---------------- */
+  /* ---------------- particles ---------------- */
   const geo = new THREE.BufferGeometry();
-  const start = new Float32Array(N * 3);
-  for (let i = 0; i < N; i++) start.set([rand(-12, 12), rand(-8, 8), rand(-10, 4)], i * 3);
-  const aA = new THREE.BufferAttribute(start.slice(), 3);
-  const aB = new THREE.BufferAttribute(shapes.sphere(), 3);
+  const init = shapes.field();
+  const aA = new THREE.BufferAttribute(init.slice(), 3);
+  const aB = new THREE.BufferAttribute(init.slice(), 3);
   const aR = new Float32Array(N);
   for (let i = 0; i < N; i++) aR[i] = Math.random();
-  geo.setAttribute("position", aA); // required by three; we use aA/aB in shader
+  geo.setAttribute("position", aA);
   geo.setAttribute("aA", aA);
   geo.setAttribute("aB", aB);
   geo.setAttribute("aRand", new THREE.BufferAttribute(aR, 1));
 
   const uniforms = {
     uTime: { value: 0 },
-    uMix: { value: 0 },
-    uScatter: { value: 2.2 },
-    uMouse: { value: new THREE.Vector3(99, 99, 0) },
-    uMouseForce: { value: 1 },
-    uSize: { value: isMobile ? 2.2 : 2.6 },
+    uMix: { value: 1 },
+    uScatter: { value: 0.9 },
+    uStream: { value: 0 },
+    uSize: { value: isMobile ? 2.2 : 2.5 },
     uPR: { value: PR },
-    uC1: { value: new THREE.Color(0xf2006d) },
-    uC2: { value: new THREE.Color(0x9b0098) },
-    uC3: { value: new THREE.Color(0xffffff) },
-    uAlpha: { value: 1 },
+    uAlpha: { value: 0 },
+    uDeep: { value: new THREE.Color(0x8a0a7e) },
+    uMid: { value: new THREE.Color(0xff1a85) },
+    uHi: { value: new THREE.Color(0xffb3dc) },
   };
 
   const mat = new THREE.ShaderMaterial({
@@ -170,191 +172,158 @@
     blending: THREE.AdditiveBlending,
     vertexShader: `
       attribute vec3 aA; attribute vec3 aB; attribute float aRand;
-      uniform float uTime, uMix, uScatter, uSize, uPR, uMouseForce;
-      uniform vec3 uMouse;
-      varying float vR; varying float vX;
+      uniform float uTime, uMix, uScatter, uSize, uPR, uStream;
+      varying float vLight; varying float vR;
       float ease(float t){ return t<.5 ? 4.*t*t*t : 1.-pow(-2.*t+2.,3.)/2.; }
       void main(){
-        // stagger each particle's arrival a little
-        float m = clamp((uMix - aRand * .35) / .65, 0., 1.);
+        float m = clamp((uMix - aRand * .4) / .6, 0., 1.);
         vec3 p = mix(aA, aB, ease(m));
-        // burst outward mid-flight
-        vec3 dir = normalize(vec3(sin(aRand*91.7), cos(aRand*47.3), sin(aRand*13.1+1.)) + 0.0001);
-        p += dir * sin(m * 3.14159) * uScatter * (0.4 + aRand);
-        // idle flutter
-        p += vec3(sin(uTime*.9 + aRand*40.), cos(uTime*.7 + aRand*30.), sin(uTime*.6 + aRand*20.)) * .035;
+        vec3 dir = normalize(vec3(sin(aRand*91.7), cos(aRand*47.3), sin(aRand*13.1+1.)) + .0001);
+        p += dir * sin(m * 3.14159) * uScatter * (.3 + aRand);
+        // gentle breathing
+        p += vec3(sin(uTime*.6 + aRand*40.), cos(uTime*.5 + aRand*30.), sin(uTime*.4 + aRand*20.)) * .025;
+        // a share of particles peel off and stream away like dust
+        float s = step(.86, aRand) * uStream;
+        float f = fract(uTime * .045 + aRand * 9.);
+        p += vec3(-f * 7. - f*f*3., sin(f * 6. + aRand * 20.) * .6 + f * 1.2, cos(f * 5. + aRand * 11.) * .8) * s;
         vec4 world = modelMatrix * vec4(p, 1.);
-        // mouse repulsion (world space)
-        vec2 d = world.xy - uMouse.xy;
-        float dist = length(d);
-        float f = smoothstep(1.8, 0., dist) * uMouseForce;
-        world.xy += normalize(d + .0001) * f * 1.1;
-        world.z += f * 1.5;
         vec4 mv = viewMatrix * world;
         gl_Position = projectionMatrix * mv;
-        gl_PointSize = uSize * (.55 + aRand * .9) * uPR * (10. / -mv.z) * (1. + f * .8);
-        vR = aRand; vX = p.x;
+        gl_PointSize = uSize * (.5 + aRand * .9) * uPR * (10. / -mv.z);
+        // top-down light: brighter on top, plus sparkle; streamers fade out
+        vLight = smoothstep(-2.6, 2.4, world.y) * .85 + step(.965, aRand) * .5;
+        vLight *= 1. - s * f;
+        vR = aRand;
       }`,
     fragmentShader: `
-      uniform vec3 uC1, uC2, uC3; uniform float uAlpha;
-      varying float vR; varying float vX;
+      uniform vec3 uDeep, uMid, uHi; uniform float uAlpha;
+      varying float vLight; varying float vR;
       void main(){
         float d = length(gl_PointCoord - .5);
         if (d > .5) discard;
-        float a = smoothstep(.5, .05, d);
-        vec3 col = mix(uC1, uC2, smoothstep(-3.5, 3.5, vX + (vR - .5) * 2.));
-        col = mix(col, uC3, step(.93, vR) * .8);
-        gl_FragColor = vec4(col, a * uAlpha * (.55 + vR * .45));
+        float a = smoothstep(.5, .1, d);
+        vec3 col = mix(uDeep, uMid, smoothstep(0., .55, vLight));
+        col = mix(col, uHi, smoothstep(.6, 1.2, vLight));
+        gl_FragColor = vec4(col, a * uAlpha * (.55 + vLight * .9));
       }`,
   });
-
   const points = new THREE.Points(geo, mat);
   points.frustumCulled = false;
   const group = new THREE.Group();
   group.add(points);
   scene.add(group);
 
-  /* ---------------- dust background ---------------- */
-  const dustN = isMobile ? 400 : 900;
-  const dg = new THREE.BufferGeometry();
-  const dp = new Float32Array(dustN * 3);
-  for (let i = 0; i < dustN; i++) dp.set([rand(-20, 20), rand(-12, 12), rand(-20, -4)], i * 3);
-  dg.setAttribute("position", new THREE.BufferAttribute(dp, 3));
-  const dust = new THREE.Points(dg, new THREE.PointsMaterial({ color: 0xff6fb5, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false }));
-  scene.add(dust);
+  /* ---------------- plexus lines ---------------- */
+  const lineGeo = new THREE.BufferGeometry();
+  const buildLines = () => {
+    const segs = [];
+    const maxD = 1.75;
+    for (let i = 0; i < PLEX_M; i++) {
+      let c = 0;
+      for (let j = i + 1; j < PLEX_M && c < 3; j++) {
+        const dx = plexNodes[i * 3] - plexNodes[j * 3], dy = plexNodes[i * 3 + 1] - plexNodes[j * 3 + 1], dz = plexNodes[i * 3 + 2] - plexNodes[j * 3 + 2];
+        if (dx * dx + dy * dy + dz * dz < maxD * maxD) { segs.push(...plexNodes.slice(i * 3, i * 3 + 3), ...plexNodes.slice(j * 3, j * 3 + 3)); c++; }
+      }
+    }
+    lineGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(segs), 3));
+  };
+  const lineMat = new THREE.LineBasicMaterial({ color: 0xff3d9a, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+  const lines = new THREE.LineSegments(lineGeo, lineMat);
+  group.add(lines);
 
   /* ---------------- state + API ---------------- */
-  const state = {
-    shape: null,
-    spin: 0,
-    targetX: 0,
-    targetY: 0,
-    targetScale: 1,
-    spinOn: true,
-  };
-  let mixTween = null;
+  const state = { shape: null, x: 0, y: 0, z: 0, scale: 1, zoom: 1, alpha: 1, lines: 0, spinY: 0.08, spinZ: 0 };
+  let tween = null;
+  const fit = () => Math.min(1, visible().w / 12);
 
-  const fitScale = () => Math.min(1, visible().w / 12.5);
-
-  function currentPositions() {
-    // CPU replica of the shader mix (without burst) so a new morph starts where we are
-    const A = aA.array, B = aB.array, out = new Float32Array(N * 3);
-    const um = uniforms.uMix.value;
+  function current() {
+    const A = aA.array, B = aB.array, out = new Float32Array(N * 3), um = uniforms.uMix.value;
     for (let i = 0; i < N; i++) {
-      let m = Math.min(1, Math.max(0, (um - aR[i] * 0.35) / 0.65));
+      let m = Math.min(1, Math.max(0, (um - aR[i] * 0.4) / 0.6));
       m = m < 0.5 ? 4 * m * m * m : 1 - Math.pow(-2 * m + 2, 3) / 2;
       for (let k = 0; k < 3; k++) out[i * 3 + k] = A[i * 3 + k] + (B[i * 3 + k] - A[i * 3 + k]) * m;
     }
     return out;
   }
 
-  function setShape(name, opts = {}) {
+  const SPIN = { blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
+  const STREAM = { blob: 1, twins: 0.4, torus: 0.3 };
+
+  function setShape(name, o = {}) {
     const v = visible();
-    state.targetX = (opts.x || 0) * v.w * 0.5;
-    state.targetY = (opts.y || 0) * v.h * 0.5;
-    state.targetScale = (opts.scale || 1) * fitScale();
-    state.spinOn = name !== "logo";
+    state.x = (o.x || 0) * v.w * 0.5;
+    state.y = (o.y || 0) * v.h * 0.5;
+    state.scale = (o.scale || 1) * (name === "plexus" || name === "field" || name === "tunnel" ? 1 : fit());
+    if (name === "plexus" && !lineGeo.attributes.position) buildLines();
+    state.lines = name === "plexus" ? 0.16 : 0;
     if (name === state.shape || !shapes[name]) return;
     state.shape = name;
-    aA.array.set(currentPositions());
+    [state.spinY, state.spinZ] = SPIN[name] || [0.05, 0];
+    aA.array.set(current());
     aA.needsUpdate = true;
     aB.array.set(shapes[name]());
     aB.needsUpdate = true;
     uniforms.uMix.value = 0;
-    if (mixTween) mixTween.kill && mixTween.kill();
-    if (typeof gsap !== "undefined" && !reduced) {
-      mixTween = gsap.to(uniforms.uMix, { value: 1, duration: 2.2, ease: "power1.inOut" });
-    } else uniforms.uMix.value = 1;
-  }
-
-  const THEMES = {
-    dark: [0xf2006d, 0x9b0098, 0xffffff, 1, THREE.AdditiveBlending],
-    brand: [0xffffff, 0xffd0ea, 0x2a0030, 0.9, THREE.NormalBlending],
-    light: [0xf2006d, 0x6a00a8, 0x2a0030, 0.85, THREE.NormalBlending],
-  };
-  function setTheme(name) {
-    const t = THEMES[name] || THEMES.dark;
-    const to = (u, hex) => {
-      const c = new THREE.Color(hex);
-      if (typeof gsap !== "undefined") gsap.to(u.value, { r: c.r, g: c.g, b: c.b, duration: 0.8 });
-      else u.value.copy(c);
-    };
-    to(uniforms.uC1, t[0]);
-    to(uniforms.uC2, t[1]);
-    to(uniforms.uC3, t[2]);
-    uniforms.uAlpha.value = t[3];
-    mat.blending = t[4];
-    mat.needsUpdate = true;
-    dust.material.color.set(name === "dark" ? 0xff6fb5 : 0xffffff);
+    tween && tween.kill && tween.kill();
+    const G = typeof gsap !== "undefined" && !reduced;
+    if (G) {
+      tween = gsap.to(uniforms.uMix, { value: 1, duration: 2.4, ease: "power1.inOut" });
+      gsap.to(uniforms.uStream, { value: STREAM[name] || 0, duration: 1.5 });
+    } else { uniforms.uMix.value = 1; uniforms.uStream.value = STREAM[name] || 0; }
   }
 
   let pulse = 0;
   window.HAAPS_SCENE = {
-    setShape,
-    setTheme,
+    setShape: (n, o) => { if (n === "logo") state.logoOpts = o; setShape(n, o); },
+    setZoom: (z) => { state.zoom = z; },
+    setAlpha: (a) => { state.alpha = a; },
+    setDepth: (z) => { state.z = z; },
     pulse: () => { pulse = 1; },
-    ready: loadLogo().then(() => { if (state.shape === "logo") { state.shape = null; setShape("logo", state.lastLogoOpts || {}); } }),
   };
-  // remember logo opts so we can re-morph when the image finishes loading
-  const _set = setShape;
-  window.HAAPS_SCENE.setShape = (name, opts = {}) => { if (name === "logo") state.lastLogoOpts = opts; _set(name, opts); };
+  loadLogo().then(() => { if (state.shape === "logo") { state.shape = null; setShape("logo", state.logoOpts || {}); } });
 
-  /* ---------------- interaction ---------------- */
-  const mouse = new THREE.Vector2(9, 9);
-  const mouseTarget = new THREE.Vector3(99, 99, 0);
-  const ray = new THREE.Raycaster();
-  const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-  const ndc = { x: 0, y: 0 };
-  window.addEventListener("pointermove", (e) => {
-    ndc.x = (e.clientX / window.innerWidth) * 2 - 1;
-    ndc.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    mouse.set(ndc.x, ndc.y);
-    ray.setFromCamera(mouse, camera);
-    ray.ray.intersectPlane(planeZ, mouseTarget);
-  }, { passive: true });
-  window.addEventListener("pointerleave", () => mouseTarget.set(99, 99, 0));
-  if (isMobile) uniforms.uMouseForce.value = 0.6;
-
-  let scrollV = 0, lastY = window.scrollY;
-
+  /* ---------------- loop ---------------- */
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
-
   let running = true;
   document.addEventListener("visibilitychange", () => { running = !document.hidden; if (running) tick(); });
 
+  let lastY = window.scrollY, vel = 0;
   const clock = new THREE.Clock();
   function tick() {
     if (!running) return;
     const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.elapsedTime;
-    uniforms.uTime.value = t;
+    uniforms.uTime.value = reduced ? t * 0.2 : t;
 
-    // scroll velocity → extra spin + scatter
     const y = window.scrollY;
-    scrollV += ((y - lastY) - scrollV) * 0.1;
+    vel += ((y - lastY) - vel) * 0.1;
     lastY = y;
 
-    uniforms.uMouse.value.lerp(mouseTarget, 0.15);
-    pulse *= 0.93;
-    uniforms.uScatter.value = 2.2 + pulse * 3;
+    pulse *= 0.94;
+    uniforms.uAlpha.value += (state.alpha - uniforms.uAlpha.value) * 0.05;
+    lineMat.opacity += (state.lines * state.alpha - lineMat.opacity) * 0.05;
 
-    // ease group toward its target placement
-    group.position.x += (state.targetX - group.position.x) * 0.05;
-    group.position.y += (state.targetY - group.position.y) * 0.05;
-    const s = group.scale.x + (state.targetScale * (1 + pulse * 0.08) - group.scale.x) * 0.05;
-    group.scale.setScalar(s);
+    group.position.x += (state.x - group.position.x) * 0.045;
+    group.position.y += (state.y - group.position.y) * 0.045;
+    group.position.z += (state.z - group.position.z) * 0.08;
+    const target = state.scale * state.zoom * (1 + pulse * 0.06);
+    group.scale.setScalar(group.scale.x + (target - group.scale.x) * 0.06);
 
-    if (state.spinOn && !reduced) state.spin += dt * 0.25 + scrollV * 0.002;
-    else state.spin += (Math.round(state.spin / (Math.PI * 2)) * Math.PI * 2 - state.spin) * 0.05;
-    group.rotation.y = state.spin + ndc.x * 0.25;
-    group.rotation.x = -ndc.y * 0.15 + (state.spinOn ? Math.sin(t * 0.3) * 0.15 : 0);
-
-    dust.rotation.y = t * 0.01;
-    dust.position.y = (y * 0.002) % 6;
+    if (!reduced) {
+      group.rotation.y += dt * state.spinY + vel * 0.0006;
+      group.rotation.z += dt * state.spinZ;
+    }
+    if (state.shape === "logo") {
+      // ease back to face the camera so the logo stays readable
+      const k = Math.round(group.rotation.y / (Math.PI * 2)) * Math.PI * 2;
+      group.rotation.y += (k + Math.sin(t * 0.5) * 0.18 - group.rotation.y) * 0.05;
+      group.rotation.z += (0 - group.rotation.z) * 0.05;
+    }
+    group.rotation.x = Math.sin(t * 0.2) * 0.08;
 
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
