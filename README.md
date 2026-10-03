@@ -16,12 +16,12 @@ The design is dark and minimal: thin Poppins type, a soft pink light falling fro
 2. **Orbit**: the particles form a dotted globe while eight channel pills (Instagram, Google Ads, Reels, WhatsApp AI, SEO, Website, AI Video and Calling Agent) circle it in 3D.
 3. **Tunnel**: you fly through a particle tunnel past glass panels for each service.
 4. **About**: a grid of cards with soft pink glows.
-5. **Contact**: the text sits on the left and a particle donut beside it morphs into two blobs and back.
+5. **Contact**: the text sits on the left and the particles beside it form a phone icon that morphs into a WhatsApp icon and back.
 
 Inner pages use the same particle background, typography and navigation.
 
 ## Motion stack
-- **Three.js**: a particle engine with about 22,000 points that morphs between shapes (AI head, blob, globe, tunnel, donut and twin blobs, plus the logo on inner pages) as each section scrolls into view.
+- **Three.js**: a particle engine with about 22,000 points that morphs between shapes (AI head, globe, tunnel, dust field, phone and WhatsApp icons, plus the logo on inner pages) as each section scrolls into view.
 - **GSAP + ScrollTrigger**: sticky scroll scenes, the hero split, the channel orbit, word reveals and the tunnel fly-through.
 - **Lenis**: smooth scrolling.
 - Respects `prefers-reduced-motion`.

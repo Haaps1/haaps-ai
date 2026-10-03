@@ -293,6 +293,57 @@
       img.src = "assets/img/ai-head.png";
     });
 
+  // icon shapes (filled SVG paths on a 24x24 grid) for the contact section
+  const ICON_PATHS = {
+    phone: "M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z",
+    whatsapp: "M17.5 14.4c-.3-.1-1.8-.9-2-1s-.5-.1-.7.1-.8 1-1 1.2-.4.2-.7.1a8.2 8.2 0 0 1-4-3.5c-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6a1.2 1.2 0 0 0-.8.4 3.5 3.5 0 0 0-1.1 2.6 6 6 0 0 0 1.3 3.2 13.9 13.9 0 0 0 5.3 4.7c2 .8 2.7.9 3.7.8a3.1 3.1 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.1-.3-.2-.6-.3zM12 21.8a9.9 9.9 0 0 1-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4a9.8 9.8 0 1 1 8.3 4.6zm8.4-18.2A11.8 11.8 0 0 0 1.8 17.8L.1 24l6.4-1.7a11.8 11.8 0 0 0 5.6 1.4A11.8 11.8 0 0 0 20.4 3.6z",
+  };
+  const ICON_COLORS = { phone: [0.95, 0.08, 0.5], whatsapp: [0.08, 0.72, 0.3] };
+  const iconCols = {};
+  const iconShape = (name) => {
+    if (shapes["_" + name]) return shapes["_" + name];
+    const S = 320;
+    const c = document.createElement("canvas");
+    c.width = c.height = S;
+    const g = c.getContext("2d");
+    g.scale(S / 24, S / 24);
+    g.fillStyle = "#fff";
+    g.fill(new Path2D(ICON_PATHS[name]));
+    const d = g.getImageData(0, 0, S, S).data;
+    const on = (x, y) => x >= 0 && y >= 0 && x < S && y < S && d[(y * S + x) * 4 + 3] > 120;
+    const pts = [];
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) if (on(x, y)) pts.push(x, y, !on(x - 2, y) || !on(x + 2, y) || !on(x, y - 2) || !on(x, y + 2) ? 1 : 0);
+    const F = pts.length / 3;
+    const a = new Float32Array(N * 3), col = new Float32Array(N * 3);
+    const sc = 5 / S, base = ICON_COLORS[name];
+    const step = Math.sqrt(F / (N * 0.8));
+    let i = 0;
+    for (let y = 0; y < S && i < N; y += step) for (let x = 0; x < S && i < N * 0.8; x += step) {
+      const jx = x + Math.random() * step, jy = y + Math.random() * step;
+      if (!on(Math.floor(jx), Math.floor(jy))) continue;
+      a.set([(jx - S / 2) * sc, -(jy - S / 2) * sc, gauss() * 0.06], i * 3);
+      const k = 0.75 + Math.random() * 0.35;
+      col.set([base[0] * k, base[1] * k, base[2] * k], i * 3);
+      i++;
+    }
+    while (i < N) {
+      // remaining particles trace the outline brighter, plus a little halo dust
+      const k = Math.floor(Math.random() * F) * 3;
+      if (pts[k + 2] || Math.random() < 0.15) {
+        const halo = !pts[k + 2];
+        const jx = pts[k] + (halo ? gauss() * 18 : Math.random() - 0.5), jy = pts[k + 1] + (halo ? gauss() * 18 : Math.random() - 0.5);
+        a.set([(jx - S / 2) * sc, -(jy - S / 2) * sc, gauss() * (halo ? 0.4 : 0.05)], i * 3);
+        col.set([Math.min(1, base[0] + 0.35), Math.min(1, base[1] + 0.35), Math.min(1, base[2] + 0.35)], i * 3);
+        i++;
+      }
+    }
+    shapes["_" + name] = a;
+    iconCols[name] = col;
+    return a;
+  };
+  shapes.phone = () => iconShape("phone");
+  shapes.whatsapp = () => iconShape("whatsapp");
+
   /* ---------------- particles ---------------- */
   const geo = new THREE.BufferGeometry();
   const init = shapes.field();
@@ -428,7 +479,7 @@
     return out;
   }
 
-  const SPIN = { head: [0, 0], robot: [0, 0], globe: [0.12, 0], blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
+  const SPIN = { phone: [0, 0], whatsapp: [0, 0], head: [0, 0], robot: [0, 0], globe: [0.12, 0], blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
   const STREAM = { head: 0, robot: 0.35, blob: 1, twins: 0.4, torus: 0.3 };
 
   function setShape(name, o = {}) {
@@ -448,6 +499,8 @@
     if (name === "robot") aEye.array.set(robotEye); else aEye.array.fill(0);
     aEye.needsUpdate = true;
     if (name === "head") { aCol.array.set(headCol); aCol.needsUpdate = true; setUnderlay(); }
+    if (iconCols[name]) { aCol.array.set(iconCols[name]); aCol.needsUpdate = true; }
+    const colored = (name === "head" && !!shapes._head) || !!iconCols[name];
     state.under = name === "head" && !!headImg ? 0.55 : 0;
     uniforms.uMix.value = 0;
     tween && tween.kill && tween.kill();
@@ -456,8 +509,8 @@
       tween = gsap.to(uniforms.uMix, { value: 1, duration: 2.4, ease: "power1.inOut" });
       gsap.to(uniforms.uStream, { value: STREAM[name] || 0, duration: 1.5 });
       gsap.to(uniforms.uSizeMul, { value: name === "head" ? (isMobile ? 1.7 : 1.35) : 1, duration: 1.6 });
-      gsap.to(uniforms.uColorMix, { value: name === "head" && shapes._head ? 1 : 0, duration: name === "head" ? 2.2 : 1.2 });
-    } else { uniforms.uMix.value = 1; uniforms.uStream.value = STREAM[name] || 0; uniforms.uColorMix.value = name === "head" ? 1 : 0; uniforms.uSizeMul.value = name === "head" ? (isMobile ? 1.7 : 1.35) : 1; }
+      gsap.to(uniforms.uColorMix, { value: colored ? 1 : 0, duration: colored ? 2.2 : 1.2 });
+    } else { uniforms.uMix.value = 1; uniforms.uStream.value = STREAM[name] || 0; uniforms.uColorMix.value = colored ? 1 : 0; uniforms.uSizeMul.value = name === "head" ? (isMobile ? 1.7 : 1.35) : 1; }
   }
 
   let pulse = 0;
@@ -517,6 +570,12 @@
     // blink every few seconds
     const bt = t % 4.2;
     uniforms.uBlink.value = bt < 0.16 ? Math.abs(Math.cos((bt / 0.16) * Math.PI)) * 0.92 + 0.08 : 1;
+    if (state.shape === "phone" || state.shape === "whatsapp") {
+      // icons face the visitor with a gentle tilt
+      const k = Math.round(group.rotation.y / (Math.PI * 2)) * Math.PI * 2;
+      group.rotation.y += (k + Math.sin(t * 0.6) * 0.3 - group.rotation.y) * 0.05;
+      group.rotation.z += (Math.sin(t * 0.8) * 0.06 - group.rotation.z) * 0.05;
+    }
     if (state.shape === "head") {
       // profile view: slow, subtle turn so the depth reads without losing the silhouette
       const k = Math.round(group.rotation.y / (Math.PI * 2)) * Math.PI * 2;
