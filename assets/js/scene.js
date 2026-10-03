@@ -216,6 +216,7 @@
   // Each particle takes its pixel colour; depth comes from the silhouette
   // width per row so the head has real volume when it turns.
   const headCol = new Float32Array(N * 3);
+  let headImg = null, headAspect = 1;
   shapes.head = () => shapes._head || shapes.blob();
   const loadHead = () =>
     new Promise((res) => {
@@ -250,24 +251,41 @@
         if (!cand.length) return res();
         const a = new Float32Array(N * 3);
         const s = 6.2 / W;
-        let i = 0, guard = 0;
-        const maxW = 1.1;
-        while (i < N && guard < N * 40) {
-          guard++;
-          const k = Math.floor(Math.random() * (cand.length / 3)) * 3;
-          if (Math.random() * 2.6 > cand[k + 2]) continue;
-          const x = cand[k] + Math.random() - 0.5, y = cand[k + 1] + Math.random() - 0.5;
-          const row = Math.round(cand[k + 1]);
+        const maxW = 0.6;
+        const fg = (x, y) => x >= 0 && y >= 0 && x < W && y < H && d[(y * W + x) * 4 + 3] >= 150;
+        const put = (i, x, y) => {
+          const row = Math.min(H - 1, Math.max(0, Math.round(y)));
           const cx = (rowMin[row] + rowMax[row]) / 2, hw = Math.max(1, (rowMax[row] - rowMin[row]) / 2);
           const u = Math.min(1, Math.abs(x - cx) / hw);
-          const depth = Math.sqrt(Math.max(0, 1 - u * u)) * Math.min(maxW, hw * s * 0.9);
-          // put points on the front or back surface of the volume, a few inside
-          const zSide = Math.random() < 0.85 ? 1 : (Math.random() < 0.5 ? -1 : Math.random() * 2 - 1);
-          a.set([(x - W / 2) * s, -(y - H / 2) * s, depth * zSide], i * 3);
-          const o = (Math.round(cand[k + 1]) * W + Math.round(cand[k])) * 4;
+          // shallow relief on the front surface only, so the surface reads as solid
+          const z = Math.sqrt(Math.max(0, 1 - u * u)) * Math.min(maxW, hw * s * 0.5);
+          a.set([(x - W / 2) * s, -(y - H / 2) * s, z], i * 3);
+          const o = (row * W + Math.min(W - 1, Math.max(0, Math.round(x)))) * 4;
           headCol.set([d[o] / 255, d[o + 1] / 255, d[o + 2] / 255], i * 3);
-          i++;
+        };
+        // 1) even coverage: jittered grid over every opaque pixel (no clumps, no holes)
+        const F = cand.length / 3;
+        const evenN = Math.floor(N * 0.8);
+        const step = Math.sqrt(F / evenN);
+        const cells = [];
+        for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) {
+          const jx = x + Math.random() * step, jy = y + Math.random() * step;
+          if (fg(Math.floor(jx), Math.floor(jy))) cells.push(jx, jy);
         }
+        let i = 0;
+        for (let c = 0; c < cells.length && i < evenN; c += 2) put(i++, cells[c], cells[c + 1]);
+        // 2) the rest sharpen edges, silhouette and glowing circuitry
+        let guard = 0;
+        while (i < N && guard < N * 60) {
+          guard++;
+          const k = Math.floor(Math.random() * F) * 3;
+          if (Math.random() * 2.6 > cand[k + 2]) continue;
+          put(i++, cand[k] + Math.random() - 0.5, cand[k + 1] + Math.random() - 0.5);
+        }
+        // fill anything left (tiny images) by repeating grid points
+        for (let c = 0; i < N; c = (c + 2) % Math.max(2, cells.length)) put(i++, cells[c] ?? W / 2, cells[c + 1] ?? H / 2);
+        headImg = img;
+        headAspect = H / W;
         shapes._head = a;
         res();
       };
@@ -298,6 +316,7 @@
     uStream: { value: 0 },
     uBlink: { value: 1 },
     uColorMix: { value: 0 },
+    uSizeMul: { value: 1 },
     uSize: { value: isMobile ? 2.2 : 2.5 },
     uPR: { value: PR },
     uAlpha: { value: 0 },
@@ -313,7 +332,7 @@
     blending: THREE.AdditiveBlending,
     vertexShader: `
       attribute vec3 aA; attribute vec3 aB; attribute float aRand; attribute float aEye; attribute vec3 aCol;
-      uniform float uTime, uMix, uScatter, uSize, uPR, uStream, uBlink;
+      uniform float uTime, uMix, uScatter, uSize, uPR, uStream, uBlink, uSizeMul;
       varying float vLight; varying float vR; varying vec3 vCol;
       float ease(float t){ return t<.5 ? 4.*t*t*t : 1.-pow(-2.*t+2.,3.)/2.; }
       void main(){
@@ -333,7 +352,7 @@
         vec4 world = modelMatrix * vec4(p, 1.);
         vec4 mv = viewMatrix * world;
         gl_Position = projectionMatrix * mv;
-        gl_PointSize = uSize * (.5 + aRand * .9) * uPR * (10. / -mv.z);
+        gl_PointSize = uSize * uSizeMul * (.5 + aRand * .9) * uPR * (10. / -mv.z);
         // top-down light: brighter on top, plus sparkle; streamers fade out
         vLight = smoothstep(-2.6, 2.4, world.y) * .85 + step(.965, aRand) * .5;
         vLight *= 1. - s * f;
@@ -360,6 +379,21 @@
   const group = new THREE.Group();
   group.add(points);
   scene.add(group);
+
+  /* ---------------- head underlay ---------------- */
+  const underMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  const under = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 6.2), underMat);
+  under.position.z = 0.05;
+  under.visible = false;
+  group.add(under);
+  const setUnderlay = () => {
+    if (!headImg || underMat.map) return;
+    const tex = new THREE.Texture(headImg);
+    tex.needsUpdate = true;
+    underMat.map = tex;
+    underMat.needsUpdate = true;
+    under.scale.set(1, headAspect, 1);
+  };
 
   /* ---------------- plexus lines ---------------- */
   const lineGeo = new THREE.BufferGeometry();
@@ -413,15 +447,17 @@
     aB.needsUpdate = true;
     if (name === "robot") aEye.array.set(robotEye); else aEye.array.fill(0);
     aEye.needsUpdate = true;
-    if (name === "head") { aCol.array.set(headCol); aCol.needsUpdate = true; }
+    if (name === "head") { aCol.array.set(headCol); aCol.needsUpdate = true; setUnderlay(); }
+    state.under = name === "head" && !!headImg ? 0.55 : 0;
     uniforms.uMix.value = 0;
     tween && tween.kill && tween.kill();
     const G = typeof gsap !== "undefined" && !reduced;
     if (G) {
       tween = gsap.to(uniforms.uMix, { value: 1, duration: 2.4, ease: "power1.inOut" });
       gsap.to(uniforms.uStream, { value: STREAM[name] || 0, duration: 1.5 });
+      gsap.to(uniforms.uSizeMul, { value: name === "head" ? (isMobile ? 1.7 : 1.35) : 1, duration: 1.6 });
       gsap.to(uniforms.uColorMix, { value: name === "head" && shapes._head ? 1 : 0, duration: name === "head" ? 2.2 : 1.2 });
-    } else { uniforms.uMix.value = 1; uniforms.uStream.value = STREAM[name] || 0; uniforms.uColorMix.value = name === "head" ? 1 : 0; }
+    } else { uniforms.uMix.value = 1; uniforms.uStream.value = STREAM[name] || 0; uniforms.uColorMix.value = name === "head" ? 1 : 0; uniforms.uSizeMul.value = name === "head" ? (isMobile ? 1.7 : 1.35) : 1; }
   }
 
   let pulse = 0;
@@ -463,6 +499,10 @@
     pulse *= 0.94;
     uniforms.uAlpha.value += (state.alpha - uniforms.uAlpha.value) * 0.05;
     lineMat.opacity += (state.lines * state.alpha - lineMat.opacity) * 0.05;
+    // underlay fades in only after the particles have arrived
+    const underT = (state.under || 0) * state.alpha * Math.max(0, (uniforms.uMix.value - 0.6) / 0.4);
+    underMat.opacity += (underT - underMat.opacity) * 0.06;
+    under.visible = underMat.opacity > 0.01;
 
     group.position.x += (state.x - group.position.x) * 0.045;
     group.position.y += (state.y - group.position.y) * 0.045;
