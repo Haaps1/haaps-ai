@@ -103,14 +103,11 @@ function renderPartials() {
   document.body.insertAdjacentHTML("afterbegin", `
     <div class="ambient" aria-hidden="true"></div>
     <div class="bg-noise" aria-hidden="true"></div>
-    <header class="site-header">
-      <div class="container nav">
-        <a href="index.html" class="nav__logo" aria-label="Haaps home"><img src="assets/img/logo.png" alt="Haaps Digital Marketing Agency" width="600" height="404"></a>
-        <a href="#" class="pill" data-modal-open>Contact us <i></i></a>
-      </div>
-    </header>
-    <nav class="dock" aria-label="Main">${nav.map(([h, l, k]) => `<a href="${h}" class="${k === page ? "is-active" : ""}">${l}</a>`).join("")}</nav>
-    ${page === "home" ? '<div class="scroll-cue">Scroll to explore</div>' : ""}
+    <nav class="dock" aria-label="Main">
+      <span class="dock__space" aria-hidden="true"></span>
+      <div class="dock__links">${nav.map(([h, l, k]) => `<a href="${h}" class="${k === page ? "is-active" : ""}">${l}</a>`).join("")}</div>
+      <a href="#" class="pill dock__cta" data-modal-open aria-label="Contact us"><span>Contact us</span> <i></i></a>
+    </nav>
     <a class="wa-float" href="${WA_LINK()}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">${ICON.whatsapp.replace('fill="#fff"', 'fill="#25d366"')}</a>`);
 
   const year = new Date().getFullYear();
@@ -253,7 +250,7 @@ function home() {
   // intro
   gsap.from(".h-hero .line > span", { yPercent: 110, duration: 1.5, ease: "expo.out", stagger: 0.12, delay: 0.3 });
   gsap.from(".h-hero .label, .h-hero .pill, [data-intro]", { opacity: 0, y: 16, duration: 1.2, ease: "power3.out", stagger: 0.1, delay: 0.9 });
-  gsap.from(".site-header, .dock, .scroll-cue", { opacity: 0, y: (i) => (i === 0 ? -20 : 20), duration: 1.2, ease: "power3.out", delay: 1.1 });
+  gsap.from(".dock", { opacity: 0, y: 30, duration: 1.2, ease: "power3.out", delay: 1.1 });
 
   // 1. hero: headline halves slide apart, object grows
   const hero = document.querySelector(".h-hero");
@@ -262,7 +259,6 @@ function home() {
       .to(".h-hero__l", { x: () => -vw() * 0.45, opacity: 0, ease: "power2.in" }, 0)
       .to(".h-hero__r", { x: () => vw() * 0.45, opacity: 0, ease: "power2.in" }, 0)
       .to(".h-hero__note", { y: -60, opacity: 0, ease: "none" }, 0);
-    ScrollTrigger.create({ start: 80, onEnter: () => document.querySelector(".scroll-cue")?.classList.add("is-hidden"), onLeaveBack: () => document.querySelector(".scroll-cue")?.classList.remove("is-hidden") });
   }
 
   // 2. orbit: channels circle the particle globe
@@ -398,7 +394,7 @@ function marquees() {
 function navigation() {
   document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach((a) => a.addEventListener("click", (e) => {
     const t = document.querySelector(a.getAttribute("href"));
-    if (t) { e.preventDefault(); scrollToTarget(t, -100); }
+    if (t) { e.preventDefault(); scrollToTarget(t, -90); }
   }));
   const subLinks = document.querySelectorAll(".svc-nav a");
   if (subLinks.length) {
@@ -413,7 +409,7 @@ function navigation() {
   }
   if (location.hash) {
     const t = document.querySelector(location.hash);
-    if (t) setTimeout(() => scrollToTarget(t, -140), 700);
+    if (t) setTimeout(() => scrollToTarget(t, -90), 700);
   }
   window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 }

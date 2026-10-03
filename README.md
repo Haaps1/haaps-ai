@@ -9,7 +9,7 @@ An animated, responsive, lead-generation website for Haaps. It's plain HTML, CSS
 - `contact.html`: Contact. Lead form, contact cards and a map.
 
 ## Design
-The design is dark and minimal: thin Poppins type, a soft pink light falling from the top of the page, and glass "pill" buttons. The logo and a "Contact us" pill sit at the top, the main menu floats as a pill at the bottom of the screen, and the normal system cursor is used.
+The design is dark and minimal: thin Poppins type, a soft pink light falling from the top of the page, and glass "pill" buttons. There is no top header. A single bar floats at the bottom of the screen with the menu in the middle and a "Contact us" button on the right. The normal system cursor is used.
 
 ## Home page sections
 1. **Hero**: the headline is split around a dense, top-lit particle object. As you scroll, the two halves slide apart and the object grows.

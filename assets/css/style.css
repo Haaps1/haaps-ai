@@ -970,3 +970,21 @@ main { z-index: 2; }
   .o-item { font-size: 12px; padding: 6px 12px 6px 6px; }
   .o-item i { width: 22px; height: 22px; font-size: 11px; }
 }
+
+/* ---------- bottom bar: space · menus · contact ---------- */
+.site-header, .scroll-cue { display: none !important; }
+.dock { left: 50%; width: min(1180px, calc(100% - 32px)); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 6px 6px 6px 18px; }
+.dock__space { min-width: 0; }
+.dock__links { display: flex; gap: 2px; }
+.dock__cta { justify-self: end; padding: 6px 6px 6px 18px; }
+.wa-float { bottom: 92px; }
+@media (max-width: 640px) {
+  .dock { grid-template-columns: 1fr auto; padding: 5px; gap: 6px; }
+  .dock__space { display: none; }
+  .dock__links a { padding: 9px 10px; font-size: 12.5px; }
+  .dock__cta { padding: 5px; }
+  .dock__cta span { display: none; }
+  .wa-float { bottom: 82px; }
+}
+.svc-nav { top: 14px; }
+.svc { top: 90px; scroll-margin-top: 90px; }
