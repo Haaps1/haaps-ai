@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" href="assets/img/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,800;1,900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
   <script type="application/ld+json">
   {
@@ -22,261 +22,168 @@
     "description": "Digital Marketing Agency in Bangalore",
     "image": "assets/img/logo.png",
     "address": { "@type": "PostalAddress", "addressLocality": "Bangalore", "addressRegion": "Karnataka", "addressCountry": "IN" },
-    "areaServed": "Bangalore",
-    "priceRange": "₹₹"
+    "areaServed": "Bangalore"
   }
   </script>
 </head>
-<body data-page="home" data-scene="home" id="top">
+<body data-page="home" id="top">
   <canvas id="webgl" aria-hidden="true"></canvas>
 
   <main>
-    <!-- ================= HERO ================= -->
-    <section class="hero">
-      <div class="container hero__inner">
-        <div class="hero__badge"><b>NEW</b><span class="pulse"></span> AI-powered marketing · Bangalore</div>
-        <h1 class="hero__title" data-split>
-          We turn scrolls<br>into <span class="rotator"><span class="grad-text">leads.</span><span class="grad-text">sales.</span><span class="grad-text">fans.</span><span class="grad-text">growth.</span></span>
+    <!-- 1 ▸ HERO: particle logo + kinetic type -->
+    <section class="k-hero" data-shape="logo" data-shape-x="0.52" data-shape-y="0.22" data-shape-mx="0" data-shape-my="0.6" data-scale="0.72" data-theme="dark">
+      <div class="container k-hero__inner">
+        <div class="k-hero__tag"><span class="pulse"></span> Digital Marketing Agency · Bangalore</div>
+        <h1 class="k-hero__title">
+          <span class="k-line" data-chars>We make</span>
+          <span class="k-line" data-chars>brands</span>
+          <span class="k-line k-line--word"><span class="k-word grad-text" data-scramble-loop="FLY.|GROW.|SELL.|VIRAL.|WIN.">FLY.</span></span>
         </h1>
-        <div class="hero__sub">
-          <p>Haaps is a creative + performance digital marketing agency in Bangalore. Scroll-stopping reels, high-ROI Google &amp; Instagram ads, websites and AI automation — all built to fill your pipeline.</p>
-          <div class="hero__actions">
-            <a href="#" class="btn btn--primary" data-modal-open data-magnetic><span class="btn__label">Get Free Strategy Call</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-            <a href="services.html" class="btn btn--ghost" data-magnetic><span class="btn__label">Explore Services</span></a>
+        <div class="k-hero__foot">
+          <p data-fade>Reels that stop thumbs. Ads that print leads. AI that never sleeps. We're Haaps — the growth crew behind Bangalore's fastest-growing brands.</p>
+          <div class="k-hero__cta" data-fade>
+            <a href="#" class="btn btn--primary" data-modal-open data-magnetic><span class="btn__label" data-scramble>Get Free Strategy Call</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+            <a href="#services" class="k-link" data-scramble>Explore services ↓</a>
           </div>
         </div>
-        <div class="hero__meta">
-          <div><strong><span data-count="250" data-suffix="+">0</span></strong><span>Brands scaled</span></div>
-          <div><strong><span data-count="12" data-suffix="K+">0</span></strong><span>Leads generated / month</span></div>
-          <div><strong><span data-count="4.8" data-suffix="x">0</span></strong><span>Average ROAS</span></div>
-        </div>
       </div>
-
-      <div class="float-chip chip-1"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8M14 7h7v7"/></svg></span><div>+318% Leads<small>Real-estate client · 60 days</small></div></div>
-      <div class="float-chip chip-2"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><polygon points="6 3 20 12 6 21 6 3"/></svg></span><div>2.4M Reel views<small>Organic · 1 month</small></div></div>
-      <div class="float-chip chip-3"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h.01M16 16h.01"/></svg></span><div>AI Agent live<small>Answering 24/7 on WhatsApp</small></div></div>
-
-      <div class="scroll-hint"><i></i>Scroll</div>
+      <div class="k-hero__hint">Move your mouse over the plane ✦ scroll to explore</div>
     </section>
 
-    <!-- ================= MARQUEE ================= -->
-    <div class="marquee marquee--tilt" aria-hidden="true">
-      <div class="marquee__track">
-        <div class="marquee__item">
-          <span>Social Media</span><svg class="star" viewBox="0 0 24 24" fill="#fff"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>
-          <span>Reels</span><svg class="star" viewBox="0 0 24 24" fill="#fff"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>
-          <span>Google Ads</span><svg class="star" viewBox="0 0 24 24" fill="#fff"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>
-          <span>Insta Ads</span><svg class="star" viewBox="0 0 24 24" fill="#fff"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>
-          <span>AI Video</span><svg class="star" viewBox="0 0 24 24" fill="#fff"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>
-          <span>SEO</span><svg class="star" viewBox="0 0 24 24" fill="#fff"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>
-          <span>Websites</span><svg class="star" viewBox="0 0 24 24" fill="#fff"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>
-          <span>AI Automation</span><svg class="star" viewBox="0 0 24 24" fill="#fff"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>
-        </div>
-      </div>
-    </div>
+    <!-- 2 ▸ VELOCITY STRIP: two rows, opposite directions -->
+    <section class="strip" aria-hidden="true">
+      <div class="strip__row" data-dir="-1"><span>SMM ✦ REELS ✦ GOOGLE ADS ✦ INSTA ADS ✦ VIDEO EDITING ✦ AI VIDEO ✦ </span></div>
+      <div class="strip__row strip__row--outline" data-dir="1"><span>WEBSITES ✦ SEO ✦ WHATSAPP AI ✦ CHATBOTS ✦ CALLING AGENTS ✦ NFC CARDS ✦ </span></div>
+    </section>
 
-    <!-- ================= INTRO ================= -->
-    <section>
+    <!-- 3 ▸ ZOOM-THROUGH -->
+    <section class="zoom" data-shape="sphere" data-shape-x="0" data-scale="0.6">
+      <div class="zoom__stage">
+        <p class="zoom__cap">We don't chase likes. We chase</p>
+        <div class="zoom__word"><span class="zoom__L">L</span>EADS</div>
+        <div class="zoom__fill"></div>
+      </div>
+    </section>
+
+    <!-- 4 ▸ MANIFESTO on brand pink -->
+    <section class="manifesto" data-theme="brand" data-shape="sphere" data-shape-x="0.68" data-shape-mx="0" data-shape-my="-0.55" data-scale="0.8">
       <div class="container">
-        <span class="eyebrow" data-reveal>Who we are</span>
-        <p class="intro__text">Haaps is a Bangalore-born growth studio where <em class="grad-text">creativity meets performance.</em> We blend content that people love with ads, SEO and AI systems that turn attention into enquiries — so your phone keeps ringing and your calendar stays full.</p>
+        <span class="m-eyebrow">( Who we are )</span>
+        <p class="manifesto__text">Haaps is a Bangalore-born growth studio. We mix <i>scroll-stopping creative</i> with <i>performance ads</i>, SEO and <i>AI automation</i> — so every rupee you spend comes back as a real enquiry.</p>
+        <div class="manifesto__row">
+          <div class="m-pill">Lead-first strategy</div>
+          <div class="m-pill">In-house content studio</div>
+          <div class="m-pill">AI agents 24/7</div>
+          <div class="m-pill">No lock-in contracts</div>
+        </div>
       </div>
     </section>
 
-    <!-- ================= SERVICES ================= -->
-    <section id="services" style="padding-top:0">
+    <!-- 5 ▸ SERVICES: 3D carousel driven by scroll -->
+    <section class="orbit" id="services" data-theme="dark" data-shape="ring" data-shape-x="0" data-shape-y="-0.15" data-scale="1.15">
+      <div class="orbit__stage">
+        <div class="orbit__head container">
+          <span class="eyebrow">What we do</span>
+          <div class="orbit__count"><b class="orbit__idx">01</b> / 08</div>
+        </div>
+        <div class="orbit__ghost" aria-hidden="true">SMM</div>
+        <div class="orbit__scene">
+          <div class="orbit__ring">
+            <a href="services.html#smm" class="o-card" data-name="SMM"><span class="o-card__n">01</span><span class="o-card__ico">✦</span><h3>Social Media Marketing</h3><p>Strategy, design, content calendars &amp; community that turns followers into buyers.</p><span class="o-card__go">Explore →</span></a>
+            <a href="services.html#reels" class="o-card" data-name="REELS"><span class="o-card__n">02</span><span class="o-card__ico">▶</span><h3>Reels</h3><p>Hook-first short videos — scripted, shot and edited to go viral.</p><span class="o-card__go">Explore →</span></a>
+            <a href="services.html#leads" class="o-card" data-name="LEADS"><span class="o-card__n">03</span><span class="o-card__ico">◎</span><h3>Leads: Google &amp; Insta Ads</h3><p>Performance campaigns engineered for the lowest cost per lead.</p><span class="o-card__go">Explore →</span></a>
+            <a href="services.html#video-editing" class="o-card" data-name="EDIT"><span class="o-card__n">04</span><span class="o-card__ico">✂</span><h3>Video Editing</h3><p>Cinematic cuts, motion graphics, captions &amp; colour grading.</p><span class="o-card__go">Explore →</span></a>
+            <a href="services.html#ai-video" class="o-card" data-name="AI VIDEO"><span class="o-card__n">05</span><span class="o-card__ico">✺</span><h3>AI Video</h3><p>AI avatars, multilingual voice-overs and ad variations in days.</p><span class="o-card__go">Explore →</span></a>
+            <a href="services.html#websites" class="o-card" data-name="WEB"><span class="o-card__n">06</span><span class="o-card__ico">⌘</span><h3>Websites</h3><p>AI, E-Commerce &amp; WordPress sites built to convert.</p><span class="o-card__go">Explore →</span></a>
+            <a href="services.html#seo" class="o-card" data-name="SEO"><span class="o-card__n">07</span><span class="o-card__ico">⌕</span><h3>SEO</h3><p>Rank on Google &amp; Maps for the searches your buyers make.</p><span class="o-card__go">Explore →</span></a>
+            <a href="services.html#ai-automation" class="o-card" data-name="AUTOMATE"><span class="o-card__n">08</span><span class="o-card__ico">⚙</span><h3>AI Automation</h3><p>WhatsApp, chatbot, calling agent, SEO reports, auto-posting &amp; NFC card.</p><span class="o-card__go">Explore →</span></a>
+          </div>
+        </div>
+        <div class="orbit__bar"><span></span></div>
+      </div>
+    </section>
+
+    <!-- 6 ▸ NUMBERS: rolling odometers on light -->
+    <section class="numbers" data-theme="light" data-shape="cube" data-shape-x="0.6" data-shape-mx="0.5" data-shape-my="-0.6" data-scale="0.7">
       <div class="container">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow" data-reveal>What we do</span>
-            <h2 class="section-title" data-split-scroll>Services built to <span class="grad-text">generate leads</span></h2>
-          </div>
-          <p data-reveal>Eight growth engines under one roof. Pick one, or let us run the full funnel from first view to final sale.</p>
-        </div>
-
-        <div class="services-grid">
-          <a href="services.html#smm" class="s-card s-card--wide s-card--feature" data-tilt="8">
-            <span class="s-card__num">01</span>
-            <span class="s-card__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-            <span class="s-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a3 3 0 1 0-3-3M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span>
-            <h3>Social Media Marketing</h3>
-            <p>Strategy, content calendars, design and community management that grow a loyal, buying audience.</p>
-            <div class="tags"><span class="tag">Instagram</span><span class="tag">Facebook</span><span class="tag">LinkedIn</span><span class="tag">YouTube</span></div>
-          </a>
-          <a href="services.html#reels" class="s-card" data-tilt="10">
-            <span class="s-card__num">02</span>
-            <span class="s-card__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-            <span class="s-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M2 8h20M8 2l3 6M14 2l3 6M10 12v6l5-3z"/></svg></span>
-            <h3>Reels</h3>
-            <p>Hook-first short videos scripted, shot and edited to go viral.</p>
-          </a>
-          <a href="services.html#leads" class="s-card" data-tilt="10">
-            <span class="s-card__num">03</span>
-            <span class="s-card__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-            <span class="s-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
-            <h3>Lead Gen Ads</h3>
-            <p>Google &amp; Instagram ads engineered for low cost-per-lead.</p>
-          </a>
-          <a href="services.html#video-editing" class="s-card" data-tilt="10">
-            <span class="s-card__num">04</span>
-            <span class="s-card__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-            <span class="s-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg></span>
-            <h3>Video Editing</h3>
-            <p>Cinematic cuts, motion graphics, captions and colour grading.</p>
-          </a>
-          <a href="services.html#ai-video" class="s-card" data-tilt="10">
-            <span class="s-card__num">05</span>
-            <span class="s-card__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-            <span class="s-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg></span>
-            <h3>AI Video</h3>
-            <p>AI avatars, product videos and ads produced in days, not weeks.</p>
-          </a>
-          <a href="services.html#websites" class="s-card" data-tilt="10">
-            <span class="s-card__num">06</span>
-            <span class="s-card__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-            <span class="s-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4M7 8l-2 2 2 2M17 8l2 2-2 2"/></svg></span>
-            <h3>Websites</h3>
-            <p>AI, E-commerce &amp; WordPress sites that convert visitors to buyers.</p>
-          </a>
-          <a href="services.html#seo" class="s-card" data-tilt="10">
-            <span class="s-card__num">07</span>
-            <span class="s-card__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-            <span class="s-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M8 11l2 2 4-4"/></svg></span>
-            <h3>SEO</h3>
-            <p>Rank on Google &amp; Maps for searches your buyers actually make.</p>
-          </a>
-          <a href="services.html#ai-automation" class="s-card s-card--wide s-card--feature" data-tilt="8">
-            <span class="s-card__num">08</span>
-            <span class="s-card__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-            <span class="s-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 17h6M2 13v2M22 13v2"/><circle cx="12" cy="3" r="1"/></svg></span>
-            <h3>AI Automation</h3>
-            <p>Put your marketing on autopilot with AI agents that reply, call, post and report — 24/7.</p>
-            <div class="tags"><span class="tag">WhatsApp</span><span class="tag">Chatbot</span><span class="tag">Calling Agent</span><span class="tag">SEO Reports</span><span class="tag">Auto-Posting</span><span class="tag">NFC Card</span></div>
-          </a>
+        <h2 class="numbers__title" data-chars>Numbers that talk.</h2>
+        <div class="numbers__grid">
+          <div class="num"><div class="odo" data-odo="250">250</div><span class="num__suf">+</span><p>Brands scaled</p></div>
+          <div class="num"><div class="odo" data-odo="12">12</div><span class="num__suf">K+</span><p>Leads every month</p></div>
+          <div class="num"><div class="odo" data-odo="50">50</div><span class="num__suf">M+</span><p>Content views</p></div>
+          <div class="num"><div class="odo" data-odo="98">98</div><span class="num__suf">%</span><p>Client retention</p></div>
         </div>
       </div>
     </section>
 
-    <!-- ================= ABOUT SPLIT ================= -->
-    <section style="padding-top:0">
-      <div class="container split">
-        <div class="media-stack">
-          <div class="m m1" data-clip><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=75" alt="Haaps team planning a campaign" data-speed="1" loading="lazy"></div>
-          <div class="m m2" data-clip><img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=700&q=75" alt="Social media content on a phone" data-speed="1.5" loading="lazy"></div>
-          <div class="badge-spin">
-            <svg viewBox="0 0 200 200"><defs><path id="circ" d="M100,100 m-75,0 a75,75 0 1,1 150,0 a75,75 0 1,1 -150,0"/></defs><text fill="#fff" font-family="Poppins" font-size="17" font-weight="600" letter-spacing="5.4"><textPath href="#circ">GROW WITH HAAPS • BANGALORE • </textPath></text></svg>
-            <div class="center"><span><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
-          </div>
+    <!-- 7 ▸ WORK: hover-reveal list -->
+    <section class="works" data-theme="dark" data-shape="wave" data-shape-x="0" data-shape-y="-0.35" data-scale="1">
+      <div class="container">
+        <div class="works__head">
+          <span class="eyebrow">Selected work</span>
+          <h2 class="section-title" data-chars>Results, not reports.</h2>
         </div>
-        <div>
-          <span class="eyebrow" data-reveal>Why Haaps</span>
-          <h2 class="section-title" data-split-scroll>Marketing that <span class="grad-text">pays for itself</span></h2>
-          <ul class="checklist">
-            <li data-reveal><span><b>Lead-first strategy.</b> Every reel, ad and page is built around one metric — qualified enquiries.</span></li>
-            <li data-reveal><span><b>Creative + AI under one roof.</b> Shoot, edit, launch and automate without juggling vendors.</span></li>
-            <li data-reveal><span><b>Transparent reporting.</b> Live dashboards and weekly calls. No vanity metrics.</span></li>
-            <li data-reveal><span><b>Local Bangalore team.</b> We know your market, your audience and your competition.</span></li>
-          </ul>
-          <a href="about.html" class="btn btn--ghost" data-magnetic data-reveal><span class="btn__label">More about us</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-        </div>
+        <ul class="w-list">
+          <li><a href="services.html#leads" class="w-row" data-img="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=75"><span class="w-n">01</span><span class="w-t">Skyline Residences</span><span class="w-c">Real Estate · Google + Meta Ads</span><span class="w-r">₹82 CPL</span></a></li>
+          <li><a href="services.html#reels" class="w-row" data-img="https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=800&q=75"><span class="w-n">02</span><span class="w-t">Glow Skincare</span><span class="w-c">D2C · Reels + Influencers</span><span class="w-r">2.4M views</span></a></li>
+          <li><a href="services.html#ai-automation" class="w-row" data-img="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=75"><span class="w-n">03</span><span class="w-t">Smile Dental AI</span><span class="w-c">Clinic · WhatsApp + Calling Agent</span><span class="w-r">+64% bookings</span></a></li>
+          <li><a href="services.html#websites" class="w-row" data-img="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=75"><span class="w-n">04</span><span class="w-t">Urban Threads</span><span class="w-c">E-Commerce · Website + SEO</span><span class="w-r">3.1x revenue</span></a></li>
+          <li><a href="services.html#ai-video" class="w-row" data-img="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=75"><span class="w-n">05</span><span class="w-t">EduNext Academy</span><span class="w-c">Education · AI Video Ads</span><span class="w-r">-58% CPL</span></a></li>
+        </ul>
       </div>
+      <div class="w-float" aria-hidden="true"><img alt=""></div>
     </section>
 
-    <!-- ================= STATS ================= -->
-    <section style="padding-top:0">
-      <div class="container stats">
-        <div class="stat" data-reveal><strong class="grad-text"><span data-count="250" data-suffix="+">0</span></strong><span>Happy clients</span></div>
-        <div class="stat" data-reveal><strong class="grad-text"><span data-count="1.5" data-suffix="Cr+">0</span></strong><span>Ad spend managed (₹)</span></div>
-        <div class="stat" data-reveal><strong class="grad-text"><span data-count="50" data-suffix="M+">0</span></strong><span>Content views</span></div>
-        <div class="stat" data-reveal><strong class="grad-text"><span data-count="98" data-suffix="%">0</span></strong><span>Client retention</span></div>
-      </div>
-    </section>
-
-    <!-- ================= PROCESS (horizontal) ================= -->
-    <section class="hscroll">
-      <div class="hscroll__pin">
-        <div class="container hscroll__head">
+    <!-- 8 ▸ PROCESS: paper plane flies a drawn path -->
+    <section class="flight" data-theme="dark" data-shape="helix" data-shape-x="0" data-shape-y="0.55" data-scale="0.9">
+      <div class="flight__pin">
+        <div class="container flight__head">
           <span class="eyebrow">How we work</span>
-          <h2 class="section-title">From idea to <span class="grad-text">inbox full of leads</span></h2>
+          <h2 class="section-title">Your flight path to <span class="grad-text">more leads</span></h2>
         </div>
-        <div class="hscroll__track">
-          <div class="p-card"><span class="ring"></span><span class="p-card__step grad-text">01</span><h3>Discover</h3><p>Free audit of your brand, competitors and current funnel. We find the fastest path to leads.</p></div>
-          <div class="p-card"><span class="ring"></span><span class="p-card__step grad-text">02</span><h3>Strategise</h3><p>A 90-day growth roadmap — channels, content pillars, budgets and KPIs agreed upfront.</p></div>
-          <div class="p-card"><span class="ring"></span><span class="p-card__step grad-text">03</span><h3>Create</h3><p>Reels, AI videos, ad creatives and landing pages produced by our in-house studio.</p></div>
-          <div class="p-card"><span class="ring"></span><span class="p-card__step grad-text">04</span><h3>Launch &amp; Automate</h3><p>Ads go live, AI agents start replying on WhatsApp and calls — no lead goes cold.</p></div>
-          <div class="p-card"><span class="ring"></span><span class="p-card__step grad-text">05</span><h3>Scale</h3><p>We double down on winners every week and report everything in plain English.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= WORK ================= -->
-    <section>
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow" data-reveal>Selected work</span>
-            <h2 class="section-title" data-split-scroll>Results we're <span class="grad-text">proud of</span></h2>
-          </div>
-          <p data-reveal>A glimpse of campaigns we've run for Bangalore brands across real estate, clinics, D2C and education.</p>
-        </div>
-        <div class="work-grid">
-          <a href="services.html#leads" class="work" data-cursor="View" data-reveal><img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=75" alt="Lead generation campaign dashboard" loading="lazy"><div class="work__info"><div><span>Real Estate · Google + Meta Ads</span><h3>Skyline Residences Launch</h3></div><span class="work__result">₹82 CPL</span></div></a>
-          <a href="services.html#reels" class="work" data-cursor="View" data-reveal><img src="https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=900&q=75" alt="Instagram reels campaign" loading="lazy"><div class="work__info"><div><span>D2C · Reels</span><h3>Glow Skincare</h3></div><span class="work__result">2.4M views</span></div></a>
-          <a href="services.html#ai-automation" class="work" data-cursor="View" data-reveal><img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=75" alt="AI automation chatbot" loading="lazy"><div class="work__info"><div><span>Clinic · AI Automation</span><h3>Smile Dental AI Agent</h3></div><span class="work__result">+64% bookings</span></div></a>
-          <a href="services.html#websites" class="work" data-cursor="View" data-reveal><img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=75" alt="E-commerce website build" loading="lazy"><div class="work__info"><div><span>E-Commerce · Website + SEO</span><h3>Urban Threads Store</h3></div><span class="work__result">3.1x revenue</span></div></a>
+        <div class="flight__track">
+          <svg class="flight__svg" viewBox="0 0 3000 400" preserveAspectRatio="none" aria-hidden="true">
+            <defs><linearGradient id="fg" x1="0" x2="1"><stop offset="0" stop-color="#f2006d"/><stop offset="1" stop-color="#9b0098"/></linearGradient></defs>
+            <path class="flight__ghost" d="M0,300 C300,300 400,80 700,100 S1100,330 1400,280 S1800,40 2100,90 S2600,320 3000,160"/>
+            <path class="flight__line" d="M0,300 C300,300 400,80 700,100 S1100,330 1400,280 S1800,40 2100,90 S2600,320 3000,160"/>
+          </svg>
+          <div class="flight__plane"><svg viewBox="0 0 64 64"><path d="M2 30 62 4 40 60 30 36Z" fill="url(#pg)"/><path d="M30 36 62 4" stroke="#fff" stroke-width="2"/><defs><linearGradient id="pg" x1="0" x2="1"><stop offset="0" stop-color="#ff3d93"/><stop offset="1" stop-color="#b000b0"/></linearGradient></defs></svg></div>
+          <div class="f-stop" style="--x:5%;--y:62%"><b>01</b><h3>Discover</h3><p>Free audit of your brand, competitors &amp; funnel.</p></div>
+          <div class="f-stop" style="--x:24%;--y:4%"><b>02</b><h3>Strategise</h3><p>A 90-day roadmap: channels, content, budgets, KPIs.</p></div>
+          <div class="f-stop" style="--x:45%;--y:58%"><b>03</b><h3>Create</h3><p>Reels, AI videos, ad creatives &amp; landing pages.</p></div>
+          <div class="f-stop" style="--x:67%;--y:0%"><b>04</b><h3>Launch &amp; Automate</h3><p>Ads go live, AI agents reply &amp; call instantly.</p></div>
+          <div class="f-stop" style="--x:86%;--y:50%"><b>05</b><h3>Scale</h3><p>Double down on winners every single week.</p></div>
         </div>
       </div>
     </section>
 
-    <!-- ================= TESTIMONIALS ================= -->
-    <section style="padding-top:0">
-      <div class="container">
-        <span class="eyebrow" data-reveal>Client love</span>
-        <h2 class="section-title" data-split-scroll style="margin-bottom:50px">Don't take <span class="grad-text">our word</span> for it</h2>
-        <div class="t-wrap" data-reveal>
-          <div class="t-slider">
-            <div class="t-track">
-              <div class="t-slide"><div class="t-card"><div class="t-card__img"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=75" alt="Client photo" loading="lazy"></div><div><div class="stars">★★★★★</div><blockquote>"Haaps took our cost per lead from ₹450 to ₹82 in six weeks. Our sales team literally asked us to pause the ads because they couldn't keep up."</blockquote><cite><b>Rahul M.</b> · Founder, Real Estate Developer</cite></div></div></div>
-              <div class="t-slide"><div class="t-card"><div class="t-card__img"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=75" alt="Client photo" loading="lazy"></div><div><div class="stars">★★★★★</div><blockquote>"Their reels team is unreal. We went from 2K to 85K followers and our online orders tripled. Best marketing decision we made."</blockquote><cite><b>Priya S.</b> · Co-founder, D2C Skincare</cite></div></div></div>
-              <div class="t-slide"><div class="t-card"><div class="t-card__img"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=75" alt="Client photo" loading="lazy"></div><div><div class="stars">★★★★★</div><blockquote>"The WhatsApp AI agent answers patients at 2 AM and books appointments automatically. It's like hiring three receptionists."</blockquote><cite><b>Dr. Arjun K.</b> · Dental Clinic, Indiranagar</cite></div></div></div>
-            </div>
-          </div>
-          <div class="t-nav">
-            <button class="t-btn t-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></button>
-            <button class="t-btn t-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
-            <div class="t-dots"></div>
-          </div>
+    <!-- 9 ▸ TESTIMONIALS: throwable card deck -->
+    <section class="deck-sec" data-theme="dark" data-shape="sphere" data-shape-x="-0.75" data-shape-y="0.55" data-shape-mx="0.6" data-shape-my="0.6" data-scale="0.45">
+      <div class="container deck-wrap">
+        <div>
+          <span class="eyebrow">Client love</span>
+          <h2 class="section-title" data-chars>Swipe the love.</h2>
+          <p class="lead" style="margin-top:20px">Drag or tap the cards — these are real words from brands we've grown.</p>
+          <button class="btn btn--ghost deck-next" style="margin-top:30px" data-magnetic><span class="btn__label">Next story</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+        </div>
+        <div class="deck">
+          <div class="d-card"><div class="stars">★★★★★</div><blockquote>"Haaps took our cost per lead from ₹450 to ₹82 in six weeks. Our sales team asked us to pause ads because they couldn't keep up."</blockquote><cite><b>Rahul M.</b><span>Founder, Real Estate</span></cite></div>
+          <div class="d-card"><div class="stars">★★★★★</div><blockquote>"Their reels team is unreal. 2K to 85K followers and online orders tripled. Best marketing decision we made."</blockquote><cite><b>Priya S.</b><span>Co-founder, D2C Skincare</span></cite></div>
+          <div class="d-card"><div class="stars">★★★★★</div><blockquote>"The WhatsApp AI agent books patients at 2 AM. It's like hiring three receptionists who never sleep."</blockquote><cite><b>Dr. Arjun K.</b><span>Dental Clinic, Indiranagar</span></cite></div>
+          <div class="d-card"><div class="stars">★★★★★</div><blockquote>"New website + SEO and we're top 3 on Google for our main keywords. Enquiries doubled in 3 months."</blockquote><cite><b>Neha R.</b><span>Interior Studio, Whitefield</span></cite></div>
         </div>
       </div>
     </section>
 
-    <!-- ================= FAQ ================= -->
-    <section style="padding-top:0">
-      <div class="container">
-        <span class="eyebrow" data-reveal>FAQ</span>
-        <h2 class="section-title" data-split-scroll style="margin-bottom:50px">Questions, <span class="grad-text">answered</span></h2>
-        <div class="faq">
-          <div class="faq-item" data-reveal><button class="faq-q">How quickly will I start getting leads?<i></i></button><div class="faq-a"><p>Most paid campaigns start producing enquiries within 3–7 days of launch. SEO and organic social compound over 60–90 days.</p></div></div>
-          <div class="faq-item" data-reveal><button class="faq-q">What's the minimum budget to work with Haaps?<i></i></button><div class="faq-a"><p>We have packages for growing local businesses and scaling brands alike. Book a free call and we'll recommend a plan that fits your goals and budget.</p></div></div>
-          <div class="faq-item" data-reveal><button class="faq-q">Do you only work with businesses in Bangalore?<i></i></button><div class="faq-a"><p>We're based in Bangalore and love local brands, but we run campaigns for clients across India and abroad.</p></div></div>
-          <div class="faq-item" data-reveal><button class="faq-q">What is an NFC card and AI calling agent?<i></i></button><div class="faq-a"><p>An NFC smart card shares your contact, website, reviews or payment link with one tap. Our AI calling agent can call new leads within seconds, qualify them and book meetings for your team.</p></div></div>
-          <div class="faq-item" data-reveal><button class="faq-q">Are there long-term contracts?<i></i></button><div class="faq-a"><p>No lock-ins. We work month-to-month because we'd rather earn your business with results.</p></div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= CTA ================= -->
-    <section style="padding-top:0">
-      <div class="container">
-        <div class="cta-box">
-          <span class="blob b1"></span><span class="blob b2"></span>
-          <h2>Ready to fill your pipeline?</h2>
-          <p>Get a free 30-minute growth audit from Bangalore's most creative digital marketing team.</p>
-          <div class="cta-actions">
-            <a href="#" class="btn btn--light" data-modal-open data-magnetic><span class="btn__label">Book Free Audit</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-            <a href="#" class="btn btn--outline" data-wa target="_blank" rel="noopener" data-magnetic><span class="btn__label">WhatsApp Us</span></a>
-          </div>
-        </div>
+    <!-- 10 ▸ CTA: giant rotating button -->
+    <section class="talk" data-theme="dark" data-shape="logo" data-shape-x="0" data-shape-y="0.45" data-shape-my="0.55" data-scale="0.55">
+      <div class="container talk__inner">
+        <h2 class="talk__title"><span data-chars>Ready to</span> <span class="grad-text" data-chars>take off?</span></h2>
+        <a href="#" class="talk__btn" data-modal-open data-cursor="Go!">
+          <svg class="talk__ring" viewBox="0 0 200 200"><defs><path id="tc" d="M100,100 m-82,0 a82,82 0 1,1 164,0 a82,82 0 1,1 -164,0"/></defs><text><textPath href="#tc">LET'S TALK ✦ FREE AUDIT ✦ LET'S TALK ✦ FREE AUDIT ✦ </textPath></text></svg>
+          <span class="talk__core"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+        </a>
+        <p class="talk__sub">or WhatsApp us — <a href="#" data-wa target="_blank" rel="noopener" class="k-link">we reply in minutes</a></p>
       </div>
     </section>
   </main>

@@ -796,8 +796,339 @@ function forms() {
         sessionStorageSet("haaps-popup", "1");
         openModal();
       }
-    }, 35000);
+    }, 45000);
   }
+}
+
+
+/* =========================================================
+   CREATIVE LAYER — kinetic type, themes, 3D sections
+   ========================================================= */
+const SCRAMBLE_CHARS = "!<>-_\\/[]{}—=+*^?#ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+function scramble(el, to, dur = 0.8) {
+  if (reduced) { el.textContent = to; return; }
+  const from = el.textContent;
+  const len = Math.max(from.length, to.length);
+  const q = [];
+  for (let i = 0; i < len; i++) { const s = Math.floor(Math.random() * 12); q.push({ from: from[i] || "", to: to[i] || "", start: s, end: s + 8 + Math.floor(Math.random() * 14) }); }
+  let frame = 0;
+  cancelAnimationFrame(el._scr);
+  const total = 60 * dur;
+  const step = () => {
+    let out = "", done = 0;
+    q.forEach((c) => {
+      const f = frame * (34 / total);
+      if (f >= c.end) { done++; out += c.to; }
+      else if (f >= c.start) out += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+      else out += c.from;
+    });
+    el.textContent = out;
+    if (done < q.length) { frame++; el._scr = requestAnimationFrame(step); }
+  };
+  step();
+}
+
+function splitChars(el) {
+  if (el._chars) return el._chars;
+  const chars = [];
+  const walk = (node) => {
+    [...node.childNodes].forEach((n) => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((w) => {
+          if (!w) return;
+          if (/^\s+$/.test(w)) return frag.appendChild(document.createTextNode(" "));
+          const wd = document.createElement("span");
+          wd.className = "wd";
+          [...w].forEach((ch) => { const c = document.createElement("span"); c.className = "char"; c.textContent = ch; wd.appendChild(c); chars.push(c); });
+          frag.appendChild(wd);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1) walk(n);
+    });
+  };
+  walk(el);
+  el._chars = chars;
+  return chars;
+}
+
+function creative() {
+  const G = hasGSAP && !reduced && typeof ScrollTrigger !== "undefined";
+  const isSmall = () => window.innerWidth < 768;
+  const SCENE = window.HAAPS_SCENE;
+
+  /* ---- hover scramble on labels ---- */
+  if (!isTouch) document.querySelectorAll("[data-scramble], .nav__links a").forEach((el) => {
+    const txt = el.textContent;
+    el.addEventListener("pointerenter", () => scramble(el, txt, 0.5));
+  });
+
+  /* ---- looping scrambled word ---- */
+  document.querySelectorAll("[data-scramble-loop]").forEach((el) => {
+    const words = el.dataset.scrambleLoop.split("|");
+    let i = 0;
+    setInterval(() => { i = (i + 1) % words.length; scramble(el, words[i], 0.9); }, 2600);
+  });
+
+  /* ---- character flip reveals ---- */
+  document.querySelectorAll("[data-chars]").forEach((el) => {
+    const chars = splitChars(el);
+    if (!G) return;
+    const inHero = el.closest(".k-hero, .page-hero");
+    gsap.from(chars, {
+      yPercent: 110, rotateX: -100, opacity: 0, duration: 1.1, ease: "expo.out", stagger: 0.025,
+      delay: inHero ? 0.2 + [...document.querySelectorAll(".k-hero [data-chars], .page-hero [data-chars]")].indexOf(el) * 0.15 : 0,
+      scrollTrigger: inHero ? null : { trigger: el, start: "top 85%" },
+    });
+  });
+  if (G) {
+    gsap.from(".k-word", { scale: 0.3, opacity: 0, rotate: -12, duration: 1.4, ease: "elastic.out(1, .5)", delay: 0.7 });
+    gsap.from("[data-fade]", { y: 40, opacity: 0, duration: 1, ease: "expo.out", stagger: 0.12, delay: 0.9 });
+  }
+
+  /* ---- section themes (body colour morph) + particle shapes ---- */
+  const BG = { dark: "#07030c", brand: "#f2006d", light: "#f4eef8" };
+  const applyTheme = (t) => {
+    if (document.body.dataset.theme === t) return;
+    document.body.dataset.theme = t;
+    if (hasGSAP) gsap.to(document.body, { backgroundColor: BG[t] || BG.dark, duration: 0.8, ease: "power2.out" });
+    else document.body.style.backgroundColor = BG[t] || BG.dark;
+    SCENE && SCENE.setTheme(t);
+  };
+  const shapeOpts = (el) => {
+    const d = el.dataset;
+    const sm = isSmall();
+    return {
+      x: parseFloat(sm && d.shapeMx !== undefined ? d.shapeMx : d.shapeX || 0),
+      y: parseFloat(sm && d.shapeMy !== undefined ? d.shapeMy : d.shapeY || 0),
+      scale: parseFloat(d.scale || 1),
+    };
+  };
+  const activate = (el) => {
+    if (el.dataset.theme) applyTheme(el.dataset.theme);
+    if (el.dataset.shape && SCENE) SCENE.setShape(el.dataset.shape, shapeOpts(el));
+  };
+  const zones = [...document.querySelectorAll("[data-shape], [data-theme]")];
+  if (zones.length) {
+    activate(zones[0]);
+    if (typeof ScrollTrigger !== "undefined") {
+      zones.forEach((el) => ScrollTrigger.create({ trigger: el, start: "top 55%", end: "bottom 55%", refreshPriority: -1, onToggle: (self) => self.isActive && activate(el) }));
+    }
+  } else if (SCENE) SCENE.setShape("sphere", { x: 0.5, y: 0.2, scale: 0.7 });
+
+  if (!G) return;
+
+  /* ---- velocity strip ---- */
+  const rows = gsap.utils.toArray(".strip__row");
+  if (rows.length) {
+    rows.forEach((r) => { const s = r.querySelector("span"); r.innerHTML = s.outerHTML.repeat(4); });
+    const pos = rows.map(() => 0);
+    let vel = 0;
+    ScrollTrigger.create({ trigger: ".strip", start: "top bottom", end: "bottom top", onUpdate: (self) => (vel = self.getVelocity() / 60) });
+    gsap.ticker.add(() => {
+      vel *= 0.92;
+      rows.forEach((r, i) => {
+        const dir = +r.dataset.dir;
+        const w = r.firstElementChild.offsetWidth;
+        pos[i] += dir * (1.2 + Math.abs(vel) * 0.6);
+        if (pos[i] <= -w) pos[i] += w;
+        if (pos[i] > 0) pos[i] -= w;
+        gsap.set(r, { x: pos[i], skewX: gsap.utils.clamp(-14, 14, -vel * 0.6 * dir) });
+      });
+    });
+  }
+
+  /* ---- zoom-through ---- */
+  const zoom = document.querySelector(".zoom");
+  if (zoom) {
+    const word = zoom.querySelector(".zoom__word");
+    const L = zoom.querySelector(".zoom__L");
+    const setOrigin = () => {
+      const wr = word.getBoundingClientRect(), lr = L.getBoundingClientRect();
+      gsap.set(word, { transformOrigin: `${lr.left - wr.left + lr.width * 0.2}px ${wr.height * 0.55}px` });
+    };
+    setOrigin();
+    window.addEventListener("resize", setOrigin);
+    gsap.timeline({ scrollTrigger: { trigger: zoom, start: "top top", end: "bottom bottom", scrub: 0.6,
+      onUpdate: (self) => applyTheme(self.progress > 0.8 ? "brand" : "dark") } })
+      .fromTo(word, { scale: 0.6, opacity: 0.2 }, { scale: 1, opacity: 1, duration: 0.25, ease: "none" })
+      .to(".zoom__cap", { opacity: 0, y: -40, duration: 0.15 }, 0.25)
+      .to(word, { scale: 70, duration: 0.6, ease: "power2.in" }, 0.25)
+      .to(".zoom__fill", { opacity: 1, duration: 0.08 }, 0.74)
+      .set(word, { opacity: 0 }, 0.84)
+      .to(".zoom__fill", { opacity: 0, duration: 0.1 }, 0.88);
+  }
+
+  /* ---- manifesto word fill ---- */
+  document.querySelectorAll(".manifesto__text").forEach((el) => {
+    const words = [];
+    const walk = (node) => [...node.childNodes].forEach((n) => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((p) => {
+          if (!p) return;
+          if (/^\s+$/.test(p)) return frag.appendChild(document.createTextNode(" "));
+          const sp = document.createElement("span"); sp.className = "word"; sp.textContent = p; frag.appendChild(sp); words.push(sp);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1) walk(n);
+    });
+    walk(el);
+    gsap.to(words, { opacity: 1, stagger: 0.1, ease: "none", scrollTrigger: { trigger: el, start: "top 75%", end: "bottom 50%", scrub: true } });
+    gsap.from(".m-pill", { y: 60, opacity: 0, rotate: () => gsap.utils.random(-12, 12), stagger: 0.08, duration: 1, ease: "back.out(1.6)", scrollTrigger: { trigger: ".manifesto__row", start: "top 90%" } });
+  });
+
+  /* ---- 3D orbit carousel ---- */
+  const orbit = document.querySelector(".orbit");
+  if (orbit) {
+    const ring = orbit.querySelector(".orbit__ring");
+    const cards = [...ring.children];
+    const n = cards.length, step = 360 / n;
+    const idx = orbit.querySelector(".orbit__idx");
+    const ghost = orbit.querySelector(".orbit__ghost");
+    const bar = orbit.querySelector(".orbit__bar span");
+    let R = 0, cur = -1;
+    const layout = () => {
+      const w = cards[0].offsetWidth;
+      R = (w / 2) / Math.tan(Math.PI / n) + (isSmall() ? 10 : 40);
+      cards.forEach((c, i) => (c.style.transform = `rotateY(${i * step}deg) translateZ(${R}px)`));
+    };
+    layout();
+    window.addEventListener("resize", layout);
+    const render = (p) => {
+      const rot = -p * step * (n - 1);
+      ring.style.transform = `translateZ(${-R}px) rotateY(${rot}deg)`;
+      cards.forEach((c, i) => {
+        const a = ((i * step + rot) % 360 + 540) % 360 - 180; // -180..180
+        const f = Math.cos((a * Math.PI) / 180);
+        c.style.opacity = Math.max(0.08, f);
+        c.classList.toggle("is-front", Math.abs(a) < step / 2);
+      });
+      const k = Math.round(p * (n - 1));
+      if (k !== cur) {
+        cur = k;
+        idx.textContent = String(k + 1).padStart(2, "0");
+        scramble(ghost, cards[k].dataset.name, 0.5);
+      }
+      bar.style.transform = `scaleX(${p})`;
+    };
+    render(0);
+    ScrollTrigger.create({ trigger: orbit, start: "top top", end: "bottom bottom", scrub: true, onUpdate: (self) => render(self.progress) });
+    // drag to spin on the stage as well
+  }
+
+  /* ---- odometers ---- */
+  document.querySelectorAll("[data-odo]").forEach((el) => {
+    const digits = el.dataset.odo.split("");
+    el.innerHTML = digits.map(() => `<span class="odo__col">${[...Array(20)].map((_, k) => `<span>${k % 10}</span>`).join("")}</span>`).join("");
+    const cols = el.querySelectorAll(".odo__col");
+    ScrollTrigger.create({
+      trigger: el, start: "top 85%", once: true,
+      onEnter: () => cols.forEach((c, i) => gsap.fromTo(c, { yPercent: 0 }, { yPercent: -5 * (10 + +digits[i]), duration: 2.2 + i * 0.35, ease: "expo.out" })),
+    });
+  });
+
+  /* ---- work hover float ---- */
+  const float = document.querySelector(".w-float");
+  if (float && !isTouch) {
+    const img = float.querySelector("img");
+    const xTo = gsap.quickTo(float, "x", { duration: 0.6, ease: "power3" });
+    const yTo = gsap.quickTo(float, "y", { duration: 0.6, ease: "power3" });
+    let lastX = 0;
+    window.addEventListener("pointermove", (e) => {
+      xTo(e.clientX); yTo(e.clientY);
+      gsap.to(float, { rotate: gsap.utils.clamp(-15, 15, (e.clientX - lastX) * 0.6), duration: 0.5 });
+      lastX = e.clientX;
+    }, { passive: true });
+    const hideFloat = () => gsap.to(float, { opacity: 0, scale: 0.6, duration: 0.3 });
+    ScrollTrigger.create({ trigger: ".w-list", start: "top bottom", end: "bottom top", onToggle: (self) => !self.isActive && hideFloat() });
+    window.addEventListener("scroll", () => { if (!document.querySelector(".w-row:hover")) hideFloat(); }, { passive: true });
+    document.querySelectorAll(".w-row").forEach((row) => {
+      row.addEventListener("pointerenter", () => {
+        img.src = row.dataset.img;
+        gsap.to(float, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out" });
+        gsap.fromTo(img, { scale: 1.4 }, { scale: 1, duration: 0.8, ease: "expo.out" });
+      });
+      row.addEventListener("pointerleave", () => gsap.to(float, { opacity: 0, scale: 0.6, duration: 0.4 }));
+    });
+  }
+  gsap.utils.toArray(".w-row").forEach((r, i) => gsap.from(r, { x: i % 2 ? 120 : -120, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: r, start: "top 92%" } }));
+
+  /* ---- flight path ---- */
+  const flight = document.querySelector(".flight");
+  if (flight) {
+    const track = flight.querySelector(".flight__track");
+    const line = flight.querySelector(".flight__line");
+    const plane = flight.querySelector(".flight__plane");
+    const stops = flight.querySelectorAll(".f-stop");
+    const L = line.getTotalLength();
+    line.style.strokeDasharray = L;
+    line.style.strokeDashoffset = L;
+    const dist = () => Math.max(0, track.offsetWidth - window.innerWidth + 120);
+    const placePlane = (p) => {
+      const sx = track.offsetWidth / 3000, sy = track.offsetHeight / 400;
+      const a = line.getPointAtLength(L * p), b = line.getPointAtLength(Math.min(L, L * p + 4));
+      const ang = Math.atan2((b.y - a.y) * sy, (b.x - a.x) * sx) * 180 / Math.PI;
+      gsap.set(plane, { x: a.x * sx, y: a.y * sy, rotate: ang + 20 });
+      line.style.strokeDashoffset = L * (1 - p);
+      stops.forEach((s) => {
+        const on = parseFloat(s.style.getPropertyValue("--x")) / 100 <= p + 0.04;
+        if (on !== s._on) { s._on = on; gsap.to(s, { opacity: on ? 1 : 0.25, scale: on ? 1 : 0.9, y: on ? 0 : 20, duration: 0.6, ease: "back.out(1.6)" }); }
+      });
+    };
+    stops.forEach((s) => gsap.set(s, { opacity: 0.25, scale: 0.9, y: 20 }));
+    placePlane(0);
+    gsap.to(track, {
+      x: () => -dist(), ease: "none",
+      scrollTrigger: { trigger: flight, start: "top top", end: () => "+=" + (dist() + window.innerHeight * 0.5), pin: ".flight__pin", scrub: 1, invalidateOnRefresh: true, anticipatePin: 1, onUpdate: (self) => placePlane(self.progress) },
+    });
+  }
+
+  /* ---- throwable testimonial deck ---- */
+  const deck = document.querySelector(".deck");
+  if (deck) {
+    const layoutDeck = (instant) => {
+      const cards = [...deck.children].reverse(); // last child = top
+      cards.forEach((c, k) => gsap.to(c, { x: 0, y: k * 14, rotate: k === 0 ? 0 : (k % 2 ? 1 : -1) * (3 + k * 2), scale: 1 - k * 0.05, zIndex: 10 - k, opacity: k > 3 ? 0 : 1, duration: instant ? 0 : 0.6, ease: "expo.out" }));
+    };
+    const throwTop = (dir = 1) => {
+      const top = deck.lastElementChild;
+      gsap.to(top, {
+        x: dir * window.innerWidth * 0.7, rotate: dir * 30, opacity: 0, duration: 0.5, ease: "power2.in",
+        onComplete: () => { deck.prepend(top); gsap.set(top, { x: 0, opacity: 1 }); layoutDeck(); },
+      });
+    };
+    layoutDeck(true);
+    document.querySelector(".deck-next")?.addEventListener("click", () => throwTop(1));
+    let sx = null, card = null;
+    deck.addEventListener("pointerdown", (e) => { card = deck.lastElementChild; if (!card.contains(e.target)) return (card = null); sx = e.clientX; card.setPointerCapture(e.pointerId); });
+    deck.addEventListener("pointermove", (e) => { if (!card) return; const dx = e.clientX - sx; gsap.set(card, { x: dx, rotate: dx * 0.05 }); });
+    const up = (e) => {
+      if (!card) return;
+      const dx = e.clientX - sx;
+      if (Math.abs(dx) > 90) throwTop(Math.sign(dx));
+      else if (Math.abs(dx) < 5) throwTop(1);
+      else layoutDeck();
+      card = null;
+    };
+    deck.addEventListener("pointerup", up);
+    deck.addEventListener("pointercancel", up);
+    let auto = setInterval(() => throwTop(1), 5000);
+    deck.addEventListener("pointerenter", () => clearInterval(auto));
+  }
+
+  /* ---- talk button magnet ---- */
+  const talk = document.querySelector(".talk__btn");
+  if (talk && !isTouch) {
+    talk.addEventListener("pointermove", (e) => {
+      const r = talk.getBoundingClientRect();
+      gsap.to(talk, { x: (e.clientX - r.left - r.width / 2) * 0.3, y: (e.clientY - r.top - r.height / 2) * 0.3, duration: 0.6, ease: "power3.out" });
+    });
+    talk.addEventListener("pointerleave", () => gsap.to(talk, { x: 0, y: 0, duration: 1, ease: "elastic.out(1, .4)" }));
+    talk.addEventListener("pointerenter", () => SCENE && SCENE.pulse());
+  }
+
+  ScrollTrigger.refresh();
 }
 
 /* =========================================================
@@ -815,4 +1146,5 @@ runPreloader(() => {
   pageIntro();
   rotator();
   scrollAnimations();
+  creative();
 });
