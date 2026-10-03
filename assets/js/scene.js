@@ -212,6 +212,69 @@
       img.src = "assets/img/logo.png";
     });
 
+  // humanoid AI head: sampled from assets/img/ai-head.png (transparent PNG).
+  // Each particle takes its pixel colour; depth comes from the silhouette
+  // width per row so the head has real volume when it turns.
+  const headCol = new Float32Array(N * 3);
+  shapes.head = () => shapes._head || shapes.blob();
+  const loadHead = () =>
+    new Promise((res) => {
+      const img = new Image();
+      img.onload = () => {
+        const W = 360, H = Math.round((img.height / img.width) * W);
+        const c = document.createElement("canvas");
+        c.width = W; c.height = H;
+        const g = c.getContext("2d");
+        g.drawImage(img, 0, 0, W, H);
+        const d = g.getImageData(0, 0, W, H).data;
+        // silhouette extents per row for depth
+        const rowMin = new Int16Array(H).fill(-1), rowMax = new Int16Array(H).fill(-1);
+        const cand = [];
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+          const o = (y * W + x) * 4;
+          if (d[o + 3] < 150) continue;
+          if (rowMin[y] < 0) rowMin[y] = x;
+          rowMax[y] = x;
+          const r = d[o], gg = d[o + 1], b = d[o + 2];
+          const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
+          const sat = mx ? (mx - mn) / mx : 0;
+          // glowing magenta circuitry gets more particles than flat skin
+          const glow = r > 170 && b > 170 && gg < 200 ? 1 : 0;
+          // facial detail: strong luminance edges (eye, nose, lips, panel seams)
+          const lum = (o2) => d[o2] * 0.3 + d[o2 + 1] * 0.59 + d[o2 + 2] * 0.11;
+          const right = x + 1 < W ? lum(o + 4) : lum(o), down = y + 1 < H ? lum(o + W * 4) : lum(o);
+          const edge = Math.min(1, (Math.abs(lum(o) - right) + Math.abs(lum(o) - down)) / 70);
+          const rim = x > 0 && d[o - 1] < 150 ? 1 : 0; // outer silhouette
+          cand.push(x, y, 0.55 + sat * 0.3 + glow * 0.8 + edge * 1.1 + rim * 1.4);
+        }
+        if (!cand.length) return res();
+        const a = new Float32Array(N * 3);
+        const s = 6.2 / W;
+        let i = 0, guard = 0;
+        const maxW = 1.1;
+        while (i < N && guard < N * 40) {
+          guard++;
+          const k = Math.floor(Math.random() * (cand.length / 3)) * 3;
+          if (Math.random() * 2.6 > cand[k + 2]) continue;
+          const x = cand[k] + Math.random() - 0.5, y = cand[k + 1] + Math.random() - 0.5;
+          const row = Math.round(cand[k + 1]);
+          const cx = (rowMin[row] + rowMax[row]) / 2, hw = Math.max(1, (rowMax[row] - rowMin[row]) / 2);
+          const u = Math.min(1, Math.abs(x - cx) / hw);
+          const depth = Math.sqrt(Math.max(0, 1 - u * u)) * Math.min(maxW, hw * s * 0.9);
+          // put points on the front or back surface of the volume, a few inside
+          const zSide = Math.random() < 0.85 ? 1 : (Math.random() < 0.5 ? -1 : Math.random() * 2 - 1);
+          a.set([(x - W / 2) * s, -(y - H / 2) * s, depth * zSide], i * 3);
+          const o = (Math.round(cand[k + 1]) * W + Math.round(cand[k])) * 4;
+          headCol.set([d[o] / 255, d[o + 1] / 255, d[o + 2] / 255], i * 3);
+          i++;
+        }
+        shapes._head = a;
+        res();
+      };
+      img.onerror = () => res();
+      img.src = "assets/img/ai-head.png";
+    });
+
   /* ---------------- particles ---------------- */
   const geo = new THREE.BufferGeometry();
   const init = shapes.field();
@@ -225,6 +288,8 @@
   geo.setAttribute("aRand", new THREE.BufferAttribute(aR, 1));
   const aEye = new THREE.BufferAttribute(new Float32Array(N), 1);
   geo.setAttribute("aEye", aEye);
+  const aCol = new THREE.BufferAttribute(new Float32Array(N * 3).fill(1), 3);
+  geo.setAttribute("aCol", aCol);
 
   const uniforms = {
     uTime: { value: 0 },
@@ -232,6 +297,7 @@
     uScatter: { value: 0.9 },
     uStream: { value: 0 },
     uBlink: { value: 1 },
+    uColorMix: { value: 0 },
     uSize: { value: isMobile ? 2.2 : 2.5 },
     uPR: { value: PR },
     uAlpha: { value: 0 },
@@ -246,9 +312,9 @@
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     vertexShader: `
-      attribute vec3 aA; attribute vec3 aB; attribute float aRand; attribute float aEye;
+      attribute vec3 aA; attribute vec3 aB; attribute float aRand; attribute float aEye; attribute vec3 aCol;
       uniform float uTime, uMix, uScatter, uSize, uPR, uStream, uBlink;
-      varying float vLight; varying float vR;
+      varying float vLight; varying float vR; varying vec3 vCol;
       float ease(float t){ return t<.5 ? 4.*t*t*t : 1.-pow(-2.*t+2.,3.)/2.; }
       void main(){
         float m = clamp((uMix - aRand * .4) / .6, 0., 1.);
@@ -273,16 +339,19 @@
         vLight *= 1. - s * f;
         vLight += eye * .9;
         vR = aRand;
+        vCol = aCol;
       }`,
     fragmentShader: `
-      uniform vec3 uDeep, uMid, uHi; uniform float uAlpha;
-      varying float vLight; varying float vR;
+      uniform vec3 uDeep, uMid, uHi; uniform float uAlpha, uColorMix;
+      varying float vLight; varying float vR; varying vec3 vCol;
       void main(){
         float d = length(gl_PointCoord - .5);
         if (d > .5) discard;
         float a = smoothstep(.5, .1, d);
         vec3 col = mix(uDeep, uMid, smoothstep(0., .55, vLight));
         col = mix(col, uHi, smoothstep(.6, 1.2, vLight));
+        // image colours for the AI head (slightly deepened so additive glow doesn't wash out)
+        col = mix(col, vCol * .85 + vec3(.03, 0., .05), uColorMix);
         gl_FragColor = vec4(col, a * uAlpha * (.55 + vLight * .9));
       }`,
   });
@@ -325,8 +394,8 @@
     return out;
   }
 
-  const SPIN = { robot: [0, 0], globe: [0.12, 0], blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
-  const STREAM = { robot: 0.35, blob: 1, twins: 0.4, torus: 0.3 };
+  const SPIN = { head: [0, 0], robot: [0, 0], globe: [0.12, 0], blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
+  const STREAM = { head: 0, robot: 0.35, blob: 1, twins: 0.4, torus: 0.3 };
 
   function setShape(name, o = {}) {
     const v = visible();
@@ -344,23 +413,26 @@
     aB.needsUpdate = true;
     if (name === "robot") aEye.array.set(robotEye); else aEye.array.fill(0);
     aEye.needsUpdate = true;
+    if (name === "head") { aCol.array.set(headCol); aCol.needsUpdate = true; }
     uniforms.uMix.value = 0;
     tween && tween.kill && tween.kill();
     const G = typeof gsap !== "undefined" && !reduced;
     if (G) {
       tween = gsap.to(uniforms.uMix, { value: 1, duration: 2.4, ease: "power1.inOut" });
       gsap.to(uniforms.uStream, { value: STREAM[name] || 0, duration: 1.5 });
-    } else { uniforms.uMix.value = 1; uniforms.uStream.value = STREAM[name] || 0; }
+      gsap.to(uniforms.uColorMix, { value: name === "head" && shapes._head ? 1 : 0, duration: name === "head" ? 2.2 : 1.2 });
+    } else { uniforms.uMix.value = 1; uniforms.uStream.value = STREAM[name] || 0; uniforms.uColorMix.value = name === "head" ? 1 : 0; }
   }
 
   let pulse = 0;
   window.HAAPS_SCENE = {
-    setShape: (n, o) => { if (n === "logo") state.logoOpts = o; setShape(n, o); },
+    setShape: (n, o) => { if (n === "logo") state.logoOpts = o; if (n === "head") state.headOpts = o; setShape(n, o); },
     setZoom: (z) => { state.zoom = z; },
     setAlpha: (a) => { state.alpha = a; },
     setDepth: (z) => { state.z = z; },
     pulse: () => { pulse = 1; },
   };
+  loadHead().then(() => { if (state.shape === "head") { state.shape = null; setShape("head", state.headOpts || {}); } });
   loadLogo().then(() => { if (state.shape === "logo") { state.shape = null; setShape("logo", state.logoOpts || {}); } });
 
   /* ---------------- loop ---------------- */
@@ -405,6 +477,12 @@
     // blink every few seconds
     const bt = t % 4.2;
     uniforms.uBlink.value = bt < 0.16 ? Math.abs(Math.cos((bt / 0.16) * Math.PI)) * 0.92 + 0.08 : 1;
+    if (state.shape === "head") {
+      // profile view: slow, subtle turn so the depth reads without losing the silhouette
+      const k = Math.round(group.rotation.y / (Math.PI * 2)) * Math.PI * 2;
+      group.rotation.y += (k + Math.sin(t * 0.35) * 0.16 - group.rotation.y) * 0.04;
+      group.rotation.z += (0 - group.rotation.z) * 0.05;
+    }
     if (state.shape === "robot") {
       // face the visitor, with a gentle "looking around" sway
       const k = Math.round(group.rotation.y / (Math.PI * 2)) * Math.PI * 2;
