@@ -12,16 +12,16 @@ An animated, responsive, lead-generation website for Haaps. It's plain HTML, CSS
 The design is dark and minimal: thin Poppins type, a soft pink light falling from the top of the page, and glass "pill" buttons. There is no top header. A single bar floats at the bottom of the screen with the menu in the middle and a "Contact us" button on the right. The normal system cursor is used.
 
 ## Home page sections
-1. **Hero**: the headline is split around a dense, top-lit particle object. As you scroll, the two halves slide apart and the object grows.
+1. **Hero**: the headline is split around an AI robot face built from particles, with glowing eyes that blink. As you scroll, the two halves slide apart and the robot grows.
 2. **Orbit**: the particles form a dotted globe while eight channel pills (Instagram, Google Ads, Reels, WhatsApp AI, SEO, Website, AI Video and Calling Agent) circle it in 3D.
-3. **Tunnel**: you fly through a particle tunnel past eight glass service panels.
+3. **Tunnel**: you fly through a particle tunnel past glass panels for each service.
 4. **About**: a grid of cards with soft pink glows.
-5. **Contact**: a particle donut morphs into two blobs and back.
+5. **Contact**: the text sits on the left and a particle donut beside it morphs into two blobs and back.
 
 Inner pages use the same particle background, typography and navigation.
 
 ## Motion stack
-- **Three.js**: a particle engine with about 22,000 points that morphs between shapes (blob, globe, tunnel, donut and twin blobs, plus the logo on inner pages) as each section scrolls into view.
+- **Three.js**: a particle engine with about 22,000 points that morphs between shapes (robot face, blob, globe, tunnel, donut and twin blobs, plus the logo on inner pages) as each section scrolls into view.
 - **GSAP + ScrollTrigger**: sticky scroll scenes, the hero split, the channel orbit, word reveals and the tunnel fly-through.
 - **Lenis**: smooth scrolling.
 - Respects `prefers-reduced-motion`.

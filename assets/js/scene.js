@@ -12,7 +12,7 @@
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
-  const N = isMobile ? 9000 : 22000;
+  const N = isMobile ? 5500 : 22000;
 
   let renderer;
   try {
@@ -21,9 +21,9 @@
     canvas.style.display = "none";
     return;
   }
-  const PR = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
+  const PR = Math.min(window.devicePixelRatio, isMobile ? 1.25 : 2);
   renderer.setPixelRatio(PR);
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight, false);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -112,6 +112,62 @@
     return a;
   };
 
+  // AI robot head: rounded head, glowing eyes, visor, smile, ears, antenna, neck
+  const robotEye = new Float32Array(N);
+  shapes.robot = () => {
+    const a = new Float32Array(N * 3);
+    robotEye.fill(0);
+    const A = 1.7, B = 1.35, C = 1.15, P = 5; // half extents + roundness
+    const front = C * 0.97;
+    for (let i = 0; i < N; i++) {
+      const k = Math.random();
+      let pt;
+      if (k < 0.36) {
+        // rounded-box shell (superellipsoid)
+        const [dx, dy, dz] = randDir();
+        const r = Math.pow(Math.pow(Math.abs(dx / A), P) + Math.pow(Math.abs(dy / B), P) + Math.pow(Math.abs(dz / C), P), -1 / P);
+        pt = [dx * r, dy * r, dz * r];
+      } else if (k < 0.56) {
+        // eyes: dense glowing discs with a bright rim
+        const side = Math.random() < 0.5 ? -1 : 1;
+        const rim = Math.random() < 0.35;
+        const rr = rim ? 0.4 + gauss() * 0.02 : Math.sqrt(Math.random()) * 0.3;
+        const t = Math.random() * Math.PI * 2;
+        pt = [side * 0.68 + Math.cos(t) * rr, 0.18 + Math.sin(t) * rr * 0.85, front + 0.08 + Math.random() * 0.04];
+        robotEye[i] = 1;
+      } else if (k < 0.65) {
+        // visor outline (rounded rectangle on the face)
+        const w = 1.35, h = 0.78, t = Math.random();
+        const per = t * 4;
+        let x, y;
+        if (per < 1) { x = -w + per * 2 * w; y = h; } else if (per < 2) { x = w; y = h - (per - 1) * 2 * h; } else if (per < 3) { x = w - (per - 2) * 2 * w; y = -h; } else { x = -w; y = -h + (per - 3) * 2 * h; }
+        pt = [x, y + 0.08, front + 0.05];
+      } else if (k < 0.71) {
+        // smile
+        const t = rand(-0.8, 0.8);
+        pt = [t * 0.75, -0.6 + 0.2 * (t / 0.8) * (t / 0.8) + gauss() * 0.015, front + 0.06];
+      } else if (k < 0.8) {
+        // ears: short cylinders on both sides
+        const side = Math.random() < 0.5 ? -1 : 1, t = Math.random() * Math.PI * 2, r = Math.random() < 0.7 ? 0.42 : Math.sqrt(Math.random()) * 0.42;
+        pt = [side * (A + rand(0, 0.32)), Math.cos(t) * r, Math.sin(t) * r];
+      } else if (k < 0.86) {
+        // antenna stick + ball
+        if (Math.random() < 0.5) pt = [gauss() * 0.03, B + rand(0, 0.75), gauss() * 0.03];
+        else { const [dx, dy, dz] = randDir(); pt = [dx * 0.2, B + 0.92 + dy * 0.2, dz * 0.2]; }
+      } else if (k < 0.93) {
+        // neck
+        const t = Math.random() * Math.PI * 2;
+        pt = [Math.cos(t) * 0.7, -B - rand(0, 0.55), Math.sin(t) * 0.55];
+      } else {
+        // soft halo of dust
+        const [dx, dy, dz] = randDir(), r = rand(2.6, 3.6);
+        pt = [dx * r, dy * r * 0.9, dz * r * 0.6];
+      }
+      a.set(pt, i * 3);
+    }
+    return a;
+  };
+
   shapes.field = () => {
     const a = new Float32Array(N * 3);
     for (let i = 0; i < N; i++) a.set([rand(-11, 11), rand(-6, 6), rand(-9, 3)], i * 3);
@@ -167,12 +223,15 @@
   geo.setAttribute("aA", aA);
   geo.setAttribute("aB", aB);
   geo.setAttribute("aRand", new THREE.BufferAttribute(aR, 1));
+  const aEye = new THREE.BufferAttribute(new Float32Array(N), 1);
+  geo.setAttribute("aEye", aEye);
 
   const uniforms = {
     uTime: { value: 0 },
     uMix: { value: 1 },
     uScatter: { value: 0.9 },
     uStream: { value: 0 },
+    uBlink: { value: 1 },
     uSize: { value: isMobile ? 2.2 : 2.5 },
     uPR: { value: PR },
     uAlpha: { value: 0 },
@@ -187,13 +246,16 @@
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     vertexShader: `
-      attribute vec3 aA; attribute vec3 aB; attribute float aRand;
-      uniform float uTime, uMix, uScatter, uSize, uPR, uStream;
+      attribute vec3 aA; attribute vec3 aB; attribute float aRand; attribute float aEye;
+      uniform float uTime, uMix, uScatter, uSize, uPR, uStream, uBlink;
       varying float vLight; varying float vR;
       float ease(float t){ return t<.5 ? 4.*t*t*t : 1.-pow(-2.*t+2.,3.)/2.; }
       void main(){
         float m = clamp((uMix - aRand * .4) / .6, 0., 1.);
         vec3 p = mix(aA, aB, ease(m));
+        // robot eyes blink (squash toward the eye line once fully formed)
+        float eye = aEye * step(.999, m);
+        p.y = mix(p.y, .18 + (p.y - .18) * uBlink, eye);
         vec3 dir = normalize(vec3(sin(aRand*91.7), cos(aRand*47.3), sin(aRand*13.1+1.)) + .0001);
         p += dir * sin(m * 3.14159) * uScatter * (.3 + aRand);
         // gentle breathing
@@ -209,6 +271,7 @@
         // top-down light: brighter on top, plus sparkle; streamers fade out
         vLight = smoothstep(-2.6, 2.4, world.y) * .85 + step(.965, aRand) * .5;
         vLight *= 1. - s * f;
+        vLight += eye * .9;
         vR = aRand;
       }`,
     fragmentShader: `
@@ -262,8 +325,8 @@
     return out;
   }
 
-  const SPIN = { globe: [0.12, 0], blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
-  const STREAM = { blob: 1, twins: 0.4, torus: 0.3 };
+  const SPIN = { robot: [0, 0], globe: [0.12, 0], blob: [0.08, 0], twins: [0.12, 0], torus: [0.1, 0.05], plexus: [0.02, 0], field: [0.01, 0], tunnel: [0, 0.03], logo: [0, 0] };
+  const STREAM = { robot: 0.35, blob: 1, twins: 0.4, torus: 0.3 };
 
   function setShape(name, o = {}) {
     const v = visible();
@@ -279,6 +342,8 @@
     aA.needsUpdate = true;
     aB.array.set(shapes[name]());
     aB.needsUpdate = true;
+    if (name === "robot") aEye.array.set(robotEye); else aEye.array.fill(0);
+    aEye.needsUpdate = true;
     uniforms.uMix.value = 0;
     tween && tween.kill && tween.kill();
     const G = typeof gsap !== "undefined" && !reduced;
@@ -299,10 +364,14 @@
   loadLogo().then(() => { if (state.shape === "logo") { state.shape = null; setShape("logo", state.logoOpts || {}); } });
 
   /* ---------------- loop ---------------- */
+  let lastW = window.innerWidth, lastH = window.innerHeight;
   window.addEventListener("resize", () => {
+    const w = window.innerWidth, h = window.innerHeight;
+    if (isMobile && w === lastW && Math.abs(h - lastH) < 160) return; // address bar show/hide
+    lastW = w; lastH = h;
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
   });
   let running = true;
   document.addEventListener("visibilitychange", () => { running = !document.hidden; if (running) tick(); });
@@ -332,6 +401,15 @@
     if (!reduced) {
       group.rotation.y += dt * state.spinY + vel * 0.0006;
       group.rotation.z += dt * state.spinZ;
+    }
+    // blink every few seconds
+    const bt = t % 4.2;
+    uniforms.uBlink.value = bt < 0.16 ? Math.abs(Math.cos((bt / 0.16) * Math.PI)) * 0.92 + 0.08 : 1;
+    if (state.shape === "robot") {
+      // face the visitor, with a gentle "looking around" sway
+      const k = Math.round(group.rotation.y / (Math.PI * 2)) * Math.PI * 2;
+      group.rotation.y += (k + Math.sin(t * 0.45) * 0.38 - group.rotation.y) * 0.04;
+      group.rotation.z += (Math.sin(t * 0.3) * 0.04 - group.rotation.z) * 0.05;
     }
     if (state.shape === "logo") {
       // ease back to face the camera so the logo stays readable

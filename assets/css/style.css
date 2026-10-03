@@ -988,3 +988,24 @@ main { z-index: 2; }
 }
 .svc-nav { top: 14px; }
 .svc { top: 90px; scroll-margin-top: 90px; }
+
+/* ---------- contact: text beside the particles, always readable ---------- */
+.h-contact { place-items: center start; text-align: left; }
+.h-contact__inner { margin-top: 0; position: relative; }
+.h-contact__inner > * { max-width: 620px; }
+.h-contact__inner::before { content: ""; position: absolute; inset: -25% -10% -25% -30%; z-index: -1; background: linear-gradient(90deg, rgba(7, 2, 7, .9), rgba(7, 2, 7, .65) 40%, transparent 62%); pointer-events: none; }
+@media (max-width: 768px) { .h-contact__inner::before { inset: -20% -10%; background: linear-gradient(180deg, transparent, rgba(7, 2, 7, .85) 25%, rgba(7, 2, 7, .85)); } }
+.h-contact p { margin-left: 0; }
+.panel__top { justify-content: flex-start; }
+
+/* ---------- phones: lighter effects for smooth scrolling ---------- */
+@media (max-width: 768px) {
+  .h-contact { place-items: end start; padding-bottom: 130px; }
+  .bg-noise { display: none; }
+  .panel, .o-item, .dock, .pill, .wa-float, .node, .f-stop { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .panel { background: linear-gradient(160deg, #241024, #140814); }
+  .o-item { background: #1e081e; }
+  .dock { background: rgba(20, 6, 20, .92); }
+  .pill { background: rgba(40, 12, 40, .85); }
+  .h-field h2 .w { filter: none !important; }
+}

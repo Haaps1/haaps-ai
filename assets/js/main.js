@@ -165,7 +165,7 @@ renderPartials();
    ========================================================= */
 const hasGSAP = typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined";
 const G = hasGSAP && !reduced;
-if (hasGSAP) gsap.registerPlugin(ScrollTrigger);
+if (hasGSAP) { gsap.registerPlugin(ScrollTrigger); ScrollTrigger.config({ ignoreMobileResize: true }); }
 
 let lenis = null;
 if (!reduced && typeof Lenis !== "undefined") {
@@ -278,10 +278,12 @@ function home() {
         el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${sc})`;
         el.style.opacity = 0.3 + (depth + 1) * 0.35;
         el.style.zIndex = depth > 0 ? 3 : 1;
-        el.style.filter = depth < -0.3 ? "blur(1.5px)" : "none";
+        if (!isTouch) el.style.filter = depth < -0.3 ? "blur(1.5px)" : "none";
       });
     };
-    gsap.ticker.add(() => { spin += 0.0025; draw(); });
+    let near = false;
+    ScrollTrigger.create({ trigger: orb, start: "top bottom", end: "bottom top", onToggle: (s) => (near = s.isActive) });
+    gsap.ticker.add(() => { if (!near) return; spin += 0.0025; draw(); });
     ScrollTrigger.create({ trigger: orb, start: "top bottom", end: "bottom top", onUpdate: (s) => (scrollSpin = s.progress * Math.PI * 1.5) });
     gsap.timeline({ scrollTrigger: { trigger: orb, start: "top 70%", end: "top 10%", scrub: 0.8 } })
       .from(".orbit-copy .label", { opacity: 0, y: 20 })
@@ -294,12 +296,10 @@ function home() {
   const tunnel = document.querySelector(".h-tunnel");
   if (tunnel) {
     const panels = [...tunnel.querySelectorAll(".panel")];
-    const idx = tunnel.querySelector(".t-idx");
     const D = 1100;
     const place = (p) => {
       const travel = p * (panels.length * D + 300);
       const sm = isSmall();
-      let front = 0;
       panels.forEach((el, i) => {
         const z = -i * D - 600 + travel;
         const side = i % 2 ? 1 : -1;
@@ -311,14 +311,12 @@ function home() {
         el.style.opacity = o;
         el.style.visibility = o <= 0.01 ? "hidden" : "visible";
         el.style.transform = `translate(-50%, -50%) translate3d(${x}px, ${y}px, ${z}px) rotateY(${-side * 8}deg)`;
-        if (z > -900 && z < 400) front = i;
       });
-      idx.textContent = String(front + 1).padStart(2, "0");
       SCENE && SCENE.setDepth(p * 32);
     };
     place(0);
     ScrollTrigger.create({ trigger: tunnel, start: "top top", end: "bottom bottom", scrub: true, onUpdate: (s) => place(s.progress) });
-    gsap.from(".tunnel__head, .tunnel__count", { opacity: 0, y: 30, duration: 1, scrollTrigger: { trigger: tunnel, start: "top 60%" } });
+    gsap.from(".tunnel__head", { opacity: 0, y: 30, duration: 1, scrollTrigger: { trigger: tunnel, start: "top 60%" } });
   }
 }
 
@@ -337,7 +335,7 @@ function reveals() {
     if (el._done) return; el._done = true;
     const words = wrapWords(el, "w2");
     const inHero = el.closest(".page-hero");
-    gsap.from(words, { opacity: 0, y: 30, filter: "blur(10px)", duration: 1.3, ease: "expo.out", stagger: 0.07, delay: inHero ? 0.2 : 0, scrollTrigger: inHero ? null : { trigger: el, start: "top 85%" } });
+    gsap.from(words, { opacity: 0, y: 30, filter: isTouch ? "none" : "blur(10px)", duration: 1.3, ease: "expo.out", stagger: 0.07, delay: inHero ? 0.2 : 0, scrollTrigger: inHero ? null : { trigger: el, start: "top 85%" } });
   });
   gsap.from(".page-hero .lead, .page-hero .crumbs, .page-hero .hero__actions", { opacity: 0, y: 20, duration: 1.2, ease: "power3.out", stagger: 0.1, delay: 0.5 });
 
