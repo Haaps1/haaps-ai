@@ -3,7 +3,7 @@
 An animated, responsive, lead-generation website for Haaps. It's plain HTML, CSS and JS with no build step.
 
 ## Pages
-- `index.html`: Home. It has the 3D hero, services grid, a pinned horizontal process section, work, testimonials, FAQ and a CTA.
+- `index.html`: Home. Ten sections, each a different concept (listed below).
 - `about.html`: About. Story, values, journey timeline and team.
 - `services.html`: Services. All 8 services as sticky stacking cards with a jump nav, plus packages.
 - `contact.html`: Contact. Lead form, contact cards and a map.
@@ -24,8 +24,8 @@ Each section is built as its own concept:
 As you scroll, the particles burst and re-form into a different 3D shape for each section, and the page background colour changes to match.
 
 ## Motion stack
-- **Three.js**: a fixed 3D scene behind every page. It has a morphing gradient blob, orbit rings, wireframe shapes and a particle galaxy, and it reacts to the mouse and to scrolling.
-- **GSAP + ScrollTrigger**: text reveals, a pinned horizontal scroll section, stacking cards, counters, parallax and page transitions.
+- **Three.js**: a fixed particle scene behind every page. The particles form the logo, flee the cursor, and morph into a new shape for each section.
+- **GSAP + ScrollTrigger**: letter-flip and scramble text, the zoom-through, the 3D carousel, the flight path, odometers, stacking cards and page transitions.
 - **Lenis**: smooth scrolling.
 - Custom cursor, magnetic buttons, 3D tilt cards and a preloader.
 - Respects `prefers-reduced-motion`.
